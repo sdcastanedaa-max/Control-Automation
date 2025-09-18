@@ -47,3 +47,11 @@ htmlcov/
 *.tar.gz
 *.zip
 
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+lib/
+test/
+.vscode/extensions.json
+
