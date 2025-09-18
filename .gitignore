@@ -1,0 +1,49 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+ENV/
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Conda
+*.conda
+*.ipynb_checkpoints
+.conda/
+conda-meta/
+
+# Editors/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Archives
+*.tar
+*.tar.gz
+*.zip
+
