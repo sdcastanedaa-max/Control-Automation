@@ -128,8 +128,9 @@ void loop() {
     double current = 30.0 * (v_sensor - v_calib);
     
     // Accumulate cuadratic sum
+    difTime_meter = difTime / 1000000.0;
     quadratic_sum_counter++;
-    quadratic_sum_v += current * current * difTime / 1000000.0;
+    quadratic_sum_v += current * current * difTime_meter;
   }
 
   // EVERY POWER CYCLE (20 ACCUMULATED VALUES), CALCULATE RMS
