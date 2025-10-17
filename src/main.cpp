@@ -18,8 +18,7 @@ unsigned long time_now = 0;
 unsigned long time_ant = 0, difTime = 0, act_time = 0, reading_time = 0, dif_reading_time = 0, timer1 = 0, timer2 = 0;
  
 // Define variables to calculate the RMS of a power cycle
-double quadratic_sum_v = 0.0;
-double quadratic_sum_rms = 0.0;       // This variable accumulates the quadratic sum of instantaneous currents
+double quadratic_sum_v = 0.0;       // This variable accumulates the quadratic sum of instantaneous currents
 const int sampleDuration = 20;          // Number of samples that determine how often the RMS is calculated
 int quadratic_sum_counter = 0;       // Counter of how many times values have been accumulated in the quadratic sum
 double freq = 50.0;                     // Define the frequency of the power cycle
@@ -124,33 +123,33 @@ void loop() {
     time_ant = time_now;
     
     // Read the voltage from the sensor
-    double v_sensor = read_voltage();
+    double v_sensor = read_voltage() - v_calib; // should auto-setup
 
     // Convert voltage in shunt to current measurement, CV 30A/1V, so 30A/1V * (v_sensor - v_calib)
-    double current = 30.0 * (v_sensor - v_calib);
+    double current = 30.0 * v_sensor;
     
     // Accumulate cuadratic sum
     difTime_meter = difTime / 1000000.0;
+    quadratic_sum_current += current * current * difTime_meter;
     quadratic_sum_counter++;
-    quadratic_sum_v += current * current * difTime_meter;
   }
 
   // EVERY POWER CYCLE (20 ACCUMULATED VALUES), CALCULATE RMS
   if (quadratic_sum_counter >= sampleDuration) {
 
     // Take the square root to calculate the RMS of the last power cycle
-    quadratic_sum_rms = sqrt(quadratic_sum_v / quadratic_sum_counter);
+    rms_current = sqrt(quadratic_sum_v * freq);
     
     // Reset accumulation values to calculate the RMS of the last power cycle
     quadratic_sum_v = 0.0;
     quadratic_sum_counter = 0;
 
     // Filter base error
-    if (quadratic_sum_rms < 0.1){    // If LESS THAN threshold
-      quadratic_sum_rms = 0.0;        // filter out noise
+    if (rms_current < 0.1){    // If LESS THAN threshold
+      rms_current = 0.0;        // filter out noise
     }
     // Accumulate RMS current values to calculate the average RMS
-    accumulated_current += quadratic_sum_rms;
+    accumulated_current += rms_current;
     accumulated_counter ++;
 
     //Serial.println(accumulated_current);
