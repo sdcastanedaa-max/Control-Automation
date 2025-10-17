@@ -138,10 +138,10 @@ void loop() {
   if (quadratic_sum_counter >= sampleDuration) {
 
     // Take the square root to calculate the RMS of the last power cycle
-    rms_current = sqrt(quadratic_sum_v * freq);
+    rms_current = sqrt(quadratic_sum_current * freq);
     
     // Reset accumulation values to calculate the RMS of the last power cycle
-    quadratic_sum_v = 0.0;
+    quadratic_sum_current = 0.0;
     quadratic_sum_counter = 0;
 
     // Filter base error
