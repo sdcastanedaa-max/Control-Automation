@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <Arduino.h>
 
 #define ADS1115_ADDRESS 0x48
 
@@ -19,6 +20,8 @@ unsigned long time_ant = 0, difTime = 0, act_time = 0, reading_time = 0, dif_rea
  
 // Define variables to calculate the RMS of a power cycle
 double quadratic_sum_v = 0.0;       // This variable accumulates the quadratic sum of instantaneous currents
+double quadratic_sum_current = 0.0; // This variable accumulates the quadratic sum of instantaneous currents
+double rms_current = 0.0;            // RMS current value
 const int sampleDuration = 20;          // Number of samples that determine how often the RMS is calculated
 int quadratic_sum_counter = 0;       // Counter of how many times values have been accumulated in the quadratic sum
 double freq = 50.0;                     // Define the frequency of the power cycle
@@ -159,13 +162,13 @@ void loop() {
   if (accumulated_counter >= sampleAverage) {
 
     // Calculate the average of the RMS current
-    accumulated_current /= sampleAverage;
-    // Reset accumulation values to calculate the average RMS
-    accumulated_counter = 0;
-
+    accumulated_current /= (double)accumulated_counter;
+    
     // Print the filtered current
     Serial.println(accumulated_current);
 
+    // Reset accumulation values to calculate the average RMS
     accumulated_current = 0.0;
+    accumulated_counter = 0;
   }
 }
