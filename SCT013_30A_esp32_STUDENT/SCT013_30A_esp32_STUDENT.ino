@@ -4,7 +4,7 @@
 // VARIABLE DECLARATIONS
 //=================================================================================================================================
 // Define the pins of the Arduino ADC where the current sensor is measured
-const int SensorPin = A1, RefPin = A2;
+const int SensorPin = A1, RefPin = A2, RelayPin = D5;
 // Define the data from the current sensor
 const int Rshunt = 33.3; // Resistance of the transformer: Model 50 A: 20 ohms, Model 30 A: 33.3 ohms
 double n_trafo = 1000; // Number of turns between primary and secondary
@@ -81,6 +81,9 @@ return voltage; // Voltage in V
 // setup Function: Function that runs once on startup
 //=================================================================================================================================
 void setup() {
+  // relay
+  pinMode(RelayPin, OUTPUT);
+  digitalWrite(RelayPin, HIGH);
 // Initialize serial communications
 Serial.begin(115200);
 // Initialize IIC communications
