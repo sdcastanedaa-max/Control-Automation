@@ -1,13 +1,14 @@
 #include <Wire.h>
 #define ADS1115_ADDRESS 0x48
-//=================================================================================================================================
-// VARIABLE DECLARATIONS
-//=================================================================================================================================
+
+// --- VARIABLE DECLARATIONS ---
 // Define the pins of the Arduino ADC where the current sensor is measured
 const int SensorPin = A1, RefPin = A2, RelayPin = D5;
+
 // Define the data from the current sensor
 const int Rshunt = 33.3; // Resistance of the transformer: Model 50 A: 20 ohms, Model 30 A: 33.3 ohms
 double n_trafo = 1000; // Number of turns between primary and secondary
+
 // Variables to calculate every millisecond
 unsigned long time_now = 0;
 unsigned long time_ant = 0, dif_Time = 0, act_time = 0, reading_time = 0, dif_reading_time = 0, timer1 = 0, timer2 = 0;
@@ -18,6 +19,7 @@ double quadratic_sum_rms = 0.0; // This variable accumulates the quadratic sum o
 const int sampleDuration = 20; // Number of samples that determine how often the RMS is calculated
 int quadratic_sum_counter = 0; // Counter of how many times values have been accumulated in the quadratic sum
 double freq = 50.0; // Define the frequency of the power cycle
+
 // Define variables to calculate an average of the current
 double accumulated_current = 0.0; // Accumulator of RMS values for averaging
 const int sampleAverage = 250; // Number of samples that determine how often the RMS average is calculated
@@ -27,10 +29,9 @@ double v_calib_acum = 0;
 double v_calib = 0;
 int i = 0;
 byte writeBuf[3];
-//=================================================================================================================================
-// Helper functions: Function created to partition the problem in smaller parts
-//=================================================================================================================================
-void config_i2c(){
+
+// --- Helper functions: Function created to partition the problem in smaller parts ---
+void config_i2c() {
   Wire.begin(); // begin I2C
   // ASD1115
   // set config register and start conversion
@@ -58,7 +59,8 @@ void config_i2c(){
   Wire.endTransmission();
   delay(500);
 }
-float read_voltage(){
+
+float read_voltage() {
   //unsigned long start = micros();
   // read conversion register
   Wire.beginTransmission(ADS1115_ADDRESS);
@@ -77,9 +79,8 @@ float read_voltage(){
   //Serial.println(voltage);
   return voltage; // Voltage in V
 }
-//=================================================================================================================================
-// setup Function: Function that runs once on startup
-//=================================================================================================================================
+
+// --- setup Function: Function that runs once on startup ---
 void setup() {
   // relay
   pinMode(RelayPin, OUTPUT);
@@ -89,9 +90,8 @@ void setup() {
   // Initialize IIC communications
   config_i2c();
 }
-//=================================================================================================================================
-// loop Function: Function that runs cyclically indefinitely
-//=================================================================================================================================
+
+// --- loop Function: Function that runs cyclically indefinitely ---
 void loop() {
   // Read the time in microseconds since the Arduino started
   act_time = micros();
@@ -120,13 +120,13 @@ void loop() {
     quadratic_sum_counter = 0;
     quadratic_sum_rms = 0;
     // Filter base error
-    if (Irms <= 0.1){
+    if (Irms <= 0.1) {
       Irms = 0;
     }
     // Accumulate RMS current values to calculate the average RMS
     accumulated_current += Irms;
     accumulated_counter++;
-    //Serial.print("Irms: : : : ");
+    //Serial.print("Irms: ");
     //Serial.println(Irms,5); //for locating error in the code
   }
   // EVERY 250 POWER CYCLES (approximately 5 seconds), CALCULATE THE AVERAGE RMS
@@ -137,7 +137,7 @@ void loop() {
     accumulated_counter = 0;
     accumulated_current = 0;
     // Print the filtered current
-    Serial.print("Irms_filt: : : : : : ");
-    Serial.println(Irms_filt,5);
+    Serial.print("Irms_filt: ");
+    Serial.println(Irms_filt, 5);
   }
 }
