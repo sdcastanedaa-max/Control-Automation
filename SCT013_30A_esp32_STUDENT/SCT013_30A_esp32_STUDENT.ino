@@ -5,7 +5,7 @@
 // HARDWARE CONFIGURATION
 // ============================================================================
 // Pin definitions for sensor connections
-const int SENSOR_PIN = A1;      // Current sensor analog input pin
+const int SENSOR_PIN = A1;       // Current sensor analog input pin
 const int REF_PIN = A2;          // Reference voltage pin
 const int RELAY_PIN = D5;        // Relay control pin
 
@@ -14,7 +14,7 @@ const int RELAY_PIN = D5;        // Relay control pin
 // ============================================================================
 // Transformer parameters for SCT013-30A current sensor
 const double TRANSFORMER_RESISTANCE = 33.3;  // Resistance in ohms (Model 30A: 33.3Ω, Model 50A: 20Ω)
-double transformerTurns = 1000;              // Number of turns between primary and secondary windings
+const double TRANSFORMER_TURNS = 1000;       // Number of turns between primary and secondary windings
 const double POWER_FREQUENCY = 50.0;         // AC power frequency in Hz
 
 // ============================================================================
@@ -64,29 +64,37 @@ int loopCounter = 0;                       // Reserved for future use - general 
 // I2C write buffer for ADS1115 ADC configuration
 byte configWriteBuffer[3];
 
-// --- Helper functions: Function created to partition the problem in smaller parts ---
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+// Function created to partition the problem in smaller parts
+
 void config_i2c() {
-  Wire.begin(); // begin I2C
-  // ASD1115
-  // set config register and start conversion
-  // ANC1 and GND, 4.096v, 128s/
-  configWriteBuffer[0] = 1; // config register is 1
-
-  configWriteBuffer[1] = 0b11010010; // 0xC2 single shot off <== ORIGINAL - single conversion/ AIN1 & GND/ 4.096V/ Continuous (0)
-
-  // bit 15 flag bit for single shot
-  // Bits 14-12 input selection:
-  // 100 ANC0; 101 ANC1; 110 ANC2; 111 ANC3
-  // Bits 11-9 Amp gain. Default to 010 here 001 P19
-  // Bit 8 Operational mode of the ADS1115.
-  // 0 : Continuous conversion mode
-  // 1 : Power-down single-shot mode (default)
-  configWriteBuffer[2] = 0b11100101; // bits 7-0 0x85 //869 SPS
-
-  // Bits 7-5 data rate default to 100 for 128SPS
-  // Bits 4-0 comparator functions see spec sheet.
-  // setup ADS1115
-  Wire.beginTransmission(ADS1115_ADDRESS); // ADC
+  // Initialize I2C communication
+  Wire.begin();
+  
+  // Configure ADS1115 ADC:
+  // - Set config register and start conversion
+  // - AIN1 and GND inputs
+  // - 4.096V full scale range
+  // - 128 SPS data rate
+  configWriteBuffer[0] = 1;  // Config register address
+  
+  // Configuration byte 1 (0xC2):
+  // Bit 15: Flag bit for single shot
+  // Bits 14-12: Input selection (101 = ANC1 & GND)
+  //   Options: 100 = ANC0, 101 = ANC1, 110 = ANC2, 111 = ANC3
+  // Bits 11-9: Amp gain (010 = default, 001 = P19)
+  // Bit 8: Operational mode (0 = Continuous, 1 = Single-shot)
+  configWriteBuffer[1] = 0b11010010;
+  
+  // Configuration byte 2 (0x85, 869 SPS):
+  // Bits 7-5: Data rate (100 = 128 SPS)
+  // Bits 4-0: Comparator functions (see spec sheet)
+  configWriteBuffer[2] = 0b11100101;
+  
+  // Send configuration to ADS1115 via I2C
+  Wire.beginTransmission(ADS1115_ADDRESS);
   Wire.write(configWriteBuffer[0]);
   Wire.write(configWriteBuffer[1]);
   Wire.write(configWriteBuffer[2]);
@@ -95,83 +103,96 @@ void config_i2c() {
 }
 
 float read_voltage() {
-  //unsigned long start = micros();
-  // read conversion register
+  // Read conversion register from ADS1115
   Wire.beginTransmission(ADS1115_ADDRESS);
-  Wire.write(0x00); // Conversion register
+  Wire.write(0x00);  // Conversion register address
   Wire.endTransmission();
   Wire.requestFrom(ADS1115_ADDRESS, 2);
-  int16_t result = Wire.read() << 8 | Wire.read(); // Mount the 2 byte value
+  
+  // Combine two bytes into 16-bit signed integer
+  int16_t result = Wire.read() << 8 | Wire.read();
   Wire.endTransmission();
 
-  //unsigned long end = micros();
-  //Serial.print("ADC Read Time (us): ");
-  // Serial.println(end - start);
-  // Convert result to voltage
-  float voltage = result * 4.096 / 32768.0; // Raw adc reference voltage configured / maximum adc value
-  //Serial.print("Vref: ");
-  //Serial.println(voltage);
-  return voltage; // Voltage in V
+  // Convert ADC result to voltage
+  // Formula: (ADC_value / max_ADC_value) * reference_voltage
+  float voltage = result * 4.096 / 32768.0;
+  
+  return voltage;  // Returns voltage in volts
 }
 
-// --- setup Function: Function that runs once on startup ---
+// ============================================================================
+// SETUP FUNCTION
+// ============================================================================
+// Function that runs once on startup
+
 void setup() {
-  // relay
+  // Configure relay pin as output and set to HIGH (relay off)
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, HIGH);
-  // Initialize serial communications
+  
+  // Initialize serial communications for debugging
   Serial.begin(115200);
-  // Initialize IIC communications
+  
+  // Initialize I2C communications and configure ADC
   config_i2c();
 }
 
-// --- loop Function: Function that runs cyclically indefinitely ---
+// ============================================================================
+// LOOP FUNCTION
+// ============================================================================
+// Function that runs cyclically indefinitely
+
 void loop() {
-  // Read the time in microseconds since the Arduino started
+  // Get current time and calculate time difference since last measurement
   currentTime = micros();
-  // Calculate the time difference between the current time and the last time the instantaneous current was updated
   timeDelta = currentTime - previousTime;
-  // EVERY 1 MILLISECOND, READ ADC AND CALCULATE THE INSTANTANEOUS CURRENT TO CALCULATE THE RMS
+  
+  // EVERY 1 MILLISECOND: Read ADC and calculate instantaneous current for RMS
   if (timeDelta >= 1000) {
-    // Update the time record with the current time
     previousTime = currentTime;
 
-    // Read the voltage from the sensor
-    double instantVoltage = read_voltage() - 1.65; // in deliverable explain how you calibrate this
-    // Serial.print("Vinst: ");
-    // Serial.println(instantVoltage);
-    // Convert voltage in shunt to current measurement
+    // Read voltage from sensor and apply calibration offset
+    // Note: Calibration method should be explained in deliverable
+    double instantVoltage = read_voltage() - 1.65;
+    
+    // Convert voltage measurement to current (30A full scale)
     double instantCurrent = instantVoltage * 30;
-    // Accumulate quadratic sum (20ms for 1 T, 50Hz)
+    
+    // Accumulate quadratic sum for RMS calculation over one power cycle (20ms at 50Hz)
     quadraticSumRms = quadraticSumRms + (instantCurrent * instantCurrent * (timeDelta / 1000000.0));
     rmsSampleCounter++;
   }
-  // EVERY POWER CYCLE (20 ACCUMULATED VALUES), CALCULATE RMS
+  
+  // EVERY POWER CYCLE (20 samples): Calculate RMS current
   if (rmsSampleCounter >= SAMPLE_DURATION) {
-    // Take the square root to calculate the RMS of the last power cycle
+    // Calculate RMS of the last power cycle
     double currentRms = sqrt(POWER_FREQUENCY * quadraticSumRms);
-    // Reset accumulation values to calculate the RMS of the last power cycle
+    
+    // Reset accumulation values for next power cycle
     rmsSampleCounter = 0;
     quadraticSumRms = 0;
-    // Filter base error
+    
+    // Filter out base noise/error (values below 0.1A set to zero)
     if (currentRms <= 0.1) {
       currentRms = 0;
     }
-    // Accumulate RMS current values to calculate the average RMS
+    
+    // Accumulate RMS values for averaging
     accumulatedCurrent += currentRms;
     averageSampleCounter++;
-    //Serial.print("Irms: ");
-    //Serial.println(currentRms,5); //for locating error in the code
   }
-  // EVERY 250 POWER CYCLES (approximately 5 seconds), CALCULATE THE AVERAGE RMS
+  
+  // EVERY 250 POWER CYCLES (~5 seconds): Calculate and print average RMS
   if (averageSampleCounter >= AVERAGE_SAMPLE_COUNT) {
-    // Calculate the average of the RMS current
+    // Calculate average RMS current over the measurement period
     double filteredCurrentRms = accumulatedCurrent / ((double)averageSampleCounter);
-    // Reset accumulation values to calculate the average RMS
+    
+    // Reset accumulation values for next averaging period
     averageSampleCounter = 0;
     accumulatedCurrent = 0;
-    // Print the filtered current
-    Serial.print("Irms_filt: ");
+    
+    // Print filtered current RMS value
+    Serial.print("filteredCurrentRms: ");
     Serial.println(filteredCurrentRms, 5);
   }
 }
