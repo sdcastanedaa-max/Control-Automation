@@ -7,18 +7,19 @@ time.sleep(2)  # Wait for Arduino to initialize
 
 try:
     while True:
-        command = input("Enter command (H for ON, L for OFF, Q to quit): ").strip().upper()
-        if command == 'Q':
-            break
-        elif command in ['H', 'L']:
-            ser.write(command.encode())  # Send command to Arduino
-            time.sleep(0.5)
-            if ser.in_waiting > 0:
-                response = ser.readline().decode().strip()
-                print(f"Response: {response}")
+        current_time = datetime.now()
+        # Determine if the current second is even or odd to toggle the relay
+        if current_time.second % 30 < 15:
+            command = 'H' # Send HIGH
         else:
-            print("Invalid command. Use H, L, or Q.")
+            command = 'L' # Send LOW
+            ser.write(command. encode())
+            # Schd the command to Arduino
+            print(f"Sent command: {command} at {current_time.strftime('%H:%M:%S')}")
+            time.sleep(1) # Adjust the sleep time as necessary
+
 except KeyboardInterrupt:
-    print("Exiting...")
+    print("Stopped by user")
+
 finally:
-    ser.close()
+    ser.close() # Close the serial connection when done
