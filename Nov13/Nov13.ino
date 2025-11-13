@@ -1,4 +1,4 @@
-const int relayPin = 13; // Pin connected to the relay or LED
+const int relayPin = D3; // Pin connected to the relay or LED
 
 void setup() {
     Serial.begin(115200); // Start serial communication at 115200 baud
