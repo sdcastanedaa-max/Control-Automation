@@ -1,5 +1,6 @@
 import serial
 import time
+from datetime import datetime
 
 # Set up the serial port
 ser = serial.Serial('COM3', 115200, timeout=1)
