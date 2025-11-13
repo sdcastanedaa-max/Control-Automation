@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 
 # Set up the serial port
-ser = serial.Serial('COM3', 115200, timeout=1)
+ser = serial.Serial('COM7', 115200, timeout=1)
 time.sleep(2)  # Wait for Arduino to initialize
 
 try:
