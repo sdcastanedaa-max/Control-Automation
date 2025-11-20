@@ -174,9 +174,13 @@
         }
 
         .result-label {
-            font-weight: 500;
-            color: var(--color-text-secondary);
-        }
+             font-weight: 500;
+             color: var(--color-text-secondary);
+             white-space: nowrap;
+             display: flex;
+             align-items: center;
+             gap: var(--space-4);
+         }
 
         .result-value {
             font-weight: 600;
@@ -219,16 +223,75 @@
         }
 
         .recommended-badge {
-            display: inline-block;
-            background: rgba(33, 128, 141, 0.2);
-            border: 1px solid var(--color-primary);
-            border-radius: var(--radius-base);
-            padding: var(--space-8) var(--space-12);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--color-primary);
-            margin-top: var(--space-12);
-        }
+             display: inline-block;
+             background: rgba(33, 128, 141, 0.2);
+             border: 1px solid var(--color-primary);
+             border-radius: var(--radius-base);
+             padding: var(--space-8) var(--space-12);
+             font-size: 12px;
+             font-weight: 600;
+             color: var(--color-primary);
+             margin-top: var(--space-12);
+         }
+
+         .info-button {
+             background: none;
+             border: none;
+             color: var(--color-primary);
+             cursor: pointer;
+             font-size: 14px;
+             margin: 0 14px;
+             padding: 0;
+             font-weight: 600;
+             display: inline-flex;
+             align-items: center;
+             flex-shrink: 0;
+         }
+
+         .info-button:hover {
+             background: none;
+             opacity: 0.8;
+         }
+
+         .phase-details {
+             display: none;
+             padding: var(--space-12);
+             background: rgba(33, 128, 141, 0.05);
+             border-radius: var(--radius-base);
+             margin-top: var(--space-8);
+             font-size: 13px;
+         }
+
+         .phase-details.visible {
+             display: block;
+         }
+
+         .phase-detail-item {
+             display: flex;
+             justify-content: space-between;
+             padding: var(--space-6) 0;
+         }
+
+         .phase-detail-item:first-child {
+             padding-top: 0;
+         }
+
+         .phase-detail-label {
+             color: var(--color-text-secondary);
+         }
+
+         .phase-detail-value {
+             font-weight: 500;
+             color: var(--color-text);
+         }
+
+         .result-item.disabled {
+             opacity: 0.5;
+         }
+
+         .result-label.disabled {
+             color: var(--color-text-secondary);
+         }
 
         @media (prefers-color-scheme: dark) {
             .warning {
@@ -280,30 +343,6 @@
         <div class="results" id="results">
             <div class="card">
                 <div class="result-section">
-                    <h2>Cost Analysis by Priority</h2>
-                    <div class="chart-container">
-                        <canvas id="costChart"></canvas>
-                    </div>
-                    <div id="recommendationBadge"></div>
-                </div>
-
-                <div class="result-section">
-                    <h2>Drying Recommendation</h2>
-                    <div class="result-item">
-                        <span class="result-label">Time Priority</span>
-                        <span class="result-value" id="recommendedPriority">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Estimated Cost</span>
-                        <span class="result-value" id="recommendedCost">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Drying Time</span>
-                        <span class="result-value" id="recommendedTime">--</span>
-                    </div>
-                </div>
-
-                <div class="result-section">
                     <h2>Environment Conditions</h2>
                     <div class="result-item">
                         <span class="result-label">Temperature</span>
@@ -324,36 +363,53 @@
                 </div>
 
                 <div class="result-section">
-                    <h2>Recommended Settings</h2>
-                    <div class="result-item">
-                        <span class="result-label">Heat Setting</span>
-                        <span class="result-value" id="heatSetting">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Temperature Range</span>
-                        <span class="result-value" id="tempRange">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Airflow</span>
-                        <span class="result-value" id="airflow">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Distance from Hair</span>
-                        <span class="result-value" id="distance">--</span>
-                    </div>
-                </div>
-
-                <div class="result-section">
                     <h2>Drying Protocol</h2>
+                    <div class="result-item" id="airDryPhaseItem">
+                        <span class="result-label" id="airDryPhaseLabel">Air Dry Phase (room temperature): <button class="info-button" onclick="togglePhaseDetails('airDryDetails')">ⓘ</button></span>
+                        <span class="result-value" id="airDryPhase">--</span>
+                    </div>
+                    <div class="phase-details" id="airDryDetails">
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Temperature</span>
+                            <span class="phase-detail-value">Room temperature</span>
+                        </div>
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">No heat required</span>
+                            <span class="phase-detail-value">Reduces heat damage</span>
+                        </div>
+                    </div>
+
                     <div class="result-item">
-                        <span class="result-label">Bulk Phase (to ~90% dry)</span>
+                        <span class="result-label">Bulk Phase (<span id="bulkPhaseHeat">--</span> heat to ~90% dry): <button class="info-button" onclick="togglePhaseDetails('bulkDetails')">ⓘ</button></span>
                         <span class="result-value" id="bulkPhase">--</span>
                     </div>
-                    <div class="result-item">
-                        <span class="result-label">Finish Phase (last 10%)</span>
+                    <div class="phase-details" id="bulkDetails">
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Temperature Range</span>
+                            <span class="phase-detail-value" id="bulkTempRange">--</span>
+                        </div>
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Distance from Hair</span>
+                            <span class="phase-detail-value" id="bulkDistance">--</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item" style="margin-top: var(--space-12);">
+                        <span class="result-label">Finish Phase (Medium/Low heat to ~10%): <button class="info-button" onclick="togglePhaseDetails('finishDetails')">ⓘ</button></span>
                         <span class="result-value" id="finishPhase">--</span>
                     </div>
-                    <div class="result-item">
+                    <div class="phase-details" id="finishDetails">
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Temperature Range</span>
+                            <span class="phase-detail-value" id="finishTempRange">--</span>
+                        </div>
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Distance from Hair</span>
+                            <span class="phase-detail-value" id="finishDistance">--</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item" style="margin-top: var(--space-12);">
                         <span class="result-label">Estimated Total Time</span>
                         <span class="result-value" id="totalTime">--</span>
                     </div>
@@ -380,6 +436,14 @@
                     <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: var(--space-12);">
                         <span id="priceSource">Auto-detected for your location</span>
                     </div>
+                </div>
+
+                <div class="result-section">
+                    <h2>Cost Analysis by Priority</h2>
+                    <div class="chart-container">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                    <div id="recommendationBadge"></div>
                 </div>
 
                 <div id="warningBox"></div>
@@ -563,6 +627,28 @@
             });
         }
 
+        function evaluateAirDryingSuitability(temperature, humidity, dryingPower, timePriority) {
+            // Check if environment is safe for partial air drying
+            return (
+                temperature >= 18 &&           // Not cold enough to risk health
+                humidity < 75 &&               // Not so humid that drying stalls
+                dryingPower >= 0.5 &&          // Sufficient evaporation potential
+                timePriority <= 0.7            // User willing to wait slightly
+            );
+        }
+
+        function calculateAirDryDuration(timePriority, hairType) {
+            // Base: 20-30 minutes depending on time preference
+            let airDryMinutes = 20 + (1 - timePriority) * 10;
+            
+            // Adjust by hair thickness
+            const multipliers = { fine: 0.8, medium: 1.0, thick: 1.2 };
+            airDryMinutes *= multipliers[hairType];
+            
+            // Cap at 30 minutes
+            return Math.min(30, airDryMinutes);
+        }
+
         function calculateRecommendations(weather, hairType, porosity, wetness, timePriority) {
             // If called from old code (with weather only), use current inputs
             if (typeof hairType === 'undefined') {
@@ -625,6 +711,19 @@
             else if (rh < 70 && temp <= 18) envType = 'Dry & Cool';
             else envType = 'Dry & Warm';
 
+            // Evaluate hybrid drying suitability
+            const hybridDryingRecommended = evaluateAirDryingSuitability(temp, rh, dp, timePriority);
+            let airDryMinutes = 0;
+            let modifiedBulkTime = bulkTime;
+            let modifiedFinishTime = finishTime;
+
+            if (hybridDryingRecommended) {
+                airDryMinutes = calculateAirDryDuration(timePriority, hairType);
+                // Reduce blow dry time by 40% when air drying first
+                modifiedBulkTime = bulkTime * 0.6;
+                modifiedFinishTime = finishTime * 0.7;
+            }
+
             // Warnings and tips
             const warnings = [];
             const tips = [];
@@ -644,6 +743,13 @@
             if (wetness > 85) {
                 tips.push('💡 Hair is quite wet. Towel-dry more thoroughly to reduce heat exposure time.');
             }
+            if (hybridDryingRecommended) {
+                tips.push('🌿 Hybrid drying recommended! Start with natural air drying, then finish with gentle blow drying. This reduces heat damage while avoiding prolonged wetness. (Lee et al., 2011, Ann Dermatol. 23(4):455-62)');
+            }
+
+            const modifiedTotalTime = (airDryMinutes > 0) 
+                ? Math.round((airDryMinutes + modifiedBulkTime + modifiedFinishTime) * 10) / 10
+                : Math.round(totalTime * 10) / 10;
 
             return {
                 dp,
@@ -653,11 +759,13 @@
                 tempRange: currentHeat.temp,
                 distance: currentHeat.distance,
                 airflow,
-                bulkTime: Math.round(bulkTime * 10) / 10,
-                finishTime: Math.round(finishTime * 10) / 10,
-                totalTime: Math.round(totalTime * 10) / 10,
+                bulkTime: Math.round(modifiedBulkTime * 10) / 10,
+                finishTime: Math.round(modifiedFinishTime * 10) / 10,
+                totalTime: modifiedTotalTime,
                 warnings,
-                tips
+                tips,
+                hybridDryingRecommended,
+                airDryMinutes: Math.round(airDryMinutes * 10) / 10
             };
         }
 
@@ -670,28 +778,45 @@
             displayCostChart(priorities, costsData, lowestCostIndex);
             
             // Display recommendation badge
-            const recommendationBadge = document.getElementById('recommendationBadge');
-            recommendationBadge.innerHTML = `<div class="recommended-badge">✓ Recommended: Priority ${priorities[lowestCostIndex].toFixed(1)} (Lowest Cost)</div>`;
-            
-            // Display recommended settings
-            document.getElementById('recommendedPriority').textContent = `${priorities[lowestCostIndex].toFixed(1)} (${priorities[lowestCostIndex] < 0.5 ? 'Gentle' : priorities[lowestCostIndex] > 0.5 ? 'Fast' : 'Balanced'})`;
-            document.getElementById('recommendedCost').textContent = `€${recommendedCost.cost.toFixed(3)}`;
-            document.getElementById('recommendedTime').textContent = `${recommendedRec.totalTime} minutes`;
+             const recommendationBadge = document.getElementById('recommendationBadge');
+             recommendationBadge.innerHTML = `<div class="recommended-badge">✓ Recommended: Priority ${priorities[lowestCostIndex].toFixed(1)} (Lowest Cost)</div>`;
             
             // Display environment info
-            document.getElementById('tempValue').textContent = `${weather.temperature.toFixed(1)}°C`;
-            document.getElementById('humidityValue').textContent = `${weather.humidity}%`;
-            document.getElementById('dpValue').textContent = recommendedRec.dp.toFixed(2);
-            document.getElementById('envType').textContent = recommendedRec.envType;
+             document.getElementById('tempValue').textContent = `${weather.temperature.toFixed(1)}°C`;
+             document.getElementById('humidityValue').textContent = `${weather.humidity}%`;
+             document.getElementById('dpValue').textContent = recommendedRec.dp.toFixed(2);
+             document.getElementById('envType').textContent = recommendedRec.envType;
             
-            // Display recommended settings details
-            document.getElementById('heatSetting').textContent = recommendedRec.heatSetting;
-            document.getElementById('tempRange').textContent = recommendedRec.tempRange;
-            document.getElementById('airflow').textContent = recommendedRec.airflow;
-            document.getElementById('distance').textContent = recommendedRec.distance;
+            // Display air dry phase
+            const airDryPhaseItem = document.getElementById('airDryPhaseItem');
+            const airDryPhaseLabel = document.getElementById('airDryPhaseLabel');
+            if (recommendedRec.hybridDryingRecommended) {
+                airDryPhaseItem.classList.remove('disabled');
+                airDryPhaseLabel.classList.remove('disabled');
+                document.getElementById('airDryPhase').textContent = `${recommendedRec.airDryMinutes} min`;
+            } else {
+                airDryPhaseItem.classList.add('disabled');
+                airDryPhaseLabel.classList.add('disabled');
+                const reasons = [];
+                if (weather.temperature < 18) reasons.push('Temperature too cold (<18°C)');
+                if (weather.humidity >= 75) reasons.push('Humidity too high (≥75%)');
+                if (recommendedRec.dp < 0.5) reasons.push('Drying power insufficient (<0.5)');
+                if (weather.temperature >= 18 && weather.humidity < 75 && recommendedRec.dp >= 0.5) {
+                    reasons.push('Time priority too high (>0.7)');
+                }
+                const reasonsText = reasons.length > 0 ? reasons.join(', ') : 'Not suitable';
+                document.getElementById('airDryPhase').textContent = `not recommended - ${reasonsText}`;
+            }
+
+            document.getElementById('bulkPhaseHeat').textContent = recommendedRec.heatSetting;
+            document.getElementById('bulkPhase').textContent = `${recommendedRec.bulkTime} min`;
+            document.getElementById('bulkTempRange').textContent = recommendedRec.tempRange;
+            document.getElementById('bulkDistance').textContent = recommendedRec.distance;
             
-            document.getElementById('bulkPhase').textContent = `${recommendedRec.bulkTime} min (${recommendedRec.heatSetting} heat, ${recommendedRec.airflow} airflow)`;
-            document.getElementById('finishPhase').textContent = `${recommendedRec.finishTime} min (reduce to Medium/Low heat)`;
+            document.getElementById('finishPhase').textContent = `${recommendedRec.finishTime} min`;
+            document.getElementById('finishTempRange').textContent = recommendedRec.tempRange;
+            document.getElementById('finishDistance').textContent = recommendedRec.distance;
+            
             document.getElementById('totalTime').textContent = `${recommendedRec.totalTime} minutes`;
 
             // Energy cost display
@@ -816,23 +941,40 @@
                 recommendationBadge.innerHTML = `<div class="recommended-badge">Priority ${selectedPriority.toFixed(1)} selected</div>`;
             }
             
-            // Update recommended settings
-            document.getElementById('recommendedPriority').textContent = `${selectedPriority.toFixed(1)} (${selectedPriority < 0.5 ? 'Gentle' : selectedPriority > 0.5 ? 'Fast' : 'Balanced'})`;
-            document.getElementById('recommendedCost').textContent = `€${selectedCost.cost.toFixed(3)}`;
-            document.getElementById('recommendedTime').textContent = `${selectedRec.totalTime} minutes`;
-            
             // Update environment info
             document.getElementById('dpValue').textContent = selectedRec.dp.toFixed(2);
             document.getElementById('envType').textContent = selectedRec.envType;
             
-            // Update recommended settings details
-            document.getElementById('heatSetting').textContent = selectedRec.heatSetting;
-            document.getElementById('tempRange').textContent = selectedRec.tempRange;
-            document.getElementById('airflow').textContent = selectedRec.airflow;
-            document.getElementById('distance').textContent = selectedRec.distance;
+            // Update air dry phase
+            const airDryPhaseItem = document.getElementById('airDryPhaseItem');
+            const airDryPhaseLabel = document.getElementById('airDryPhaseLabel');
+            if (selectedRec.hybridDryingRecommended) {
+                airDryPhaseItem.classList.remove('disabled');
+                airDryPhaseLabel.classList.remove('disabled');
+                document.getElementById('airDryPhase').textContent = `${selectedRec.airDryMinutes} min`;
+            } else {
+                airDryPhaseItem.classList.add('disabled');
+                airDryPhaseLabel.classList.add('disabled');
+                const reasons = [];
+                if (data.weather.temperature < 18) reasons.push('Temperature too cold (<18°C)');
+                if (data.weather.humidity >= 75) reasons.push('Humidity too high (≥75%)');
+                if (selectedRec.dp < 0.5) reasons.push('Drying power insufficient (<0.5)');
+                if (data.weather.temperature >= 18 && data.weather.humidity < 75 && selectedRec.dp >= 0.5) {
+                    reasons.push('Time priority too high (>0.7)');
+                }
+                const reasonsText = reasons.length > 0 ? reasons.join(', ') : 'Not suitable';
+                document.getElementById('airDryPhase').textContent = `not recommended - ${reasonsText}`;
+            }
+
+            document.getElementById('bulkPhaseHeat').textContent = selectedRec.heatSetting;
+            document.getElementById('bulkPhase').textContent = `${selectedRec.bulkTime} min`;
+            document.getElementById('bulkTempRange').textContent = selectedRec.tempRange;
+            document.getElementById('bulkDistance').textContent = selectedRec.distance;
             
-            document.getElementById('bulkPhase').textContent = `${selectedRec.bulkTime} min (${selectedRec.heatSetting} heat, ${selectedRec.airflow} airflow)`;
-            document.getElementById('finishPhase').textContent = `${selectedRec.finishTime} min (reduce to Medium/Low heat)`;
+            document.getElementById('finishPhase').textContent = `${selectedRec.finishTime} min`;
+            document.getElementById('finishTempRange').textContent = selectedRec.tempRange;
+            document.getElementById('finishDistance').textContent = selectedRec.distance;
+            
             document.getElementById('totalTime').textContent = `${selectedRec.totalTime} minutes`;
 
             // Update energy cost display
@@ -853,13 +995,18 @@
                 : '';
         }
 
+        function togglePhaseDetails(elementId) {
+            const element = document.getElementById(elementId);
+            element.classList.toggle('visible');
+        }
+
         // Auto-load on page load with default location
         window.addEventListener('load', () => {
             if (locationInput.value) {
                 generateBtn.click();
             }
         });
-    </script>
+        </script>
 </body>
 </html>
 
