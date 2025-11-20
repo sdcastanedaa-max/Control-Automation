@@ -115,11 +115,13 @@
         }
 
         label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: var(--space-8);
-            font-size: 14px;
-        }
+             display: flex;
+             align-items: center;
+             white-space: nowrap;
+             font-weight: 500;
+             margin-bottom: var(--space-8);
+             font-size: 14px;
+         }
 
         input, select {
             width: 100%;
@@ -260,7 +262,7 @@
              color: var(--color-primary);
              cursor: pointer;
              font-size: 14px;
-             margin: 0 14px;
+             margin: 0 0 0 8px;
              padding: 0;
              font-weight: 600;
              display: inline-flex;
@@ -337,21 +339,41 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="hairType">Hair Thickness</label>
+                    <label for="hairType">Hair Thickness <button class="info-button" onclick="togglePhaseDetails('thicknessDetails')">ⓘ</button></label>
                     <select id="hairType">
                         <option value="fine">Fine</option>
                         <option value="medium" selected>Medium</option>
                         <option value="thick">Thick</option>
                     </select>
+                    <div class="phase-details" id="thicknessDetails">
+                        <div style="font-size: 13px; color: var(--color-text-secondary); line-height: 1.6;">
+                            Feel an individual strand:
+                            <div style="margin-top: var(--space-8);">
+                                <div><strong style="color: var(--color-text);">Fine</strong> = hard to see and feel</div>
+                                <div><strong style="color: var(--color-text);">Medium</strong> = visible but not coarse</div>
+                                <div><strong style="color: var(--color-text);">Thick</strong> = strong and sturdy</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="porosity">Hair Porosity</label>
+                    <label for="porosity">Hair Porosity <button class="info-button" onclick="togglePhaseDetails('porosityDetails')">ⓘ</button></label>
                     <select id="porosity">
                         <option value="low">Low</option>
                         <option value="normal" selected>Normal</option>
                         <option value="high">High</option>
                     </select>
+                    <div class="phase-details" id="porosityDetails">
+                        <div style="font-size: 13px; color: var(--color-text-secondary); line-height: 1.6;">
+                            Drop a strand in water—wait 3–5 minutes:
+                            <div style="margin-top: var(--space-8);">
+                                <div><strong style="color: var(--color-text);">Low</strong> = floats, repels water, dries slow</div>
+                                <div><strong style="color: var(--color-text);">Normal</strong> = sinks slowly</div>
+                                <div><strong style="color: var(--color-text);">High</strong> = sinks fast, dries fast, may frizz</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <button id="generateBtn">Generate Recommendations</button>
@@ -433,7 +455,7 @@
                     </div>
 
                     <div class="result-item">
-                        <span class="result-label">Bulk Phase (<span id="bulkPhaseHeat">--</span> heat to ~90% dry): <button class="info-button" onclick="togglePhaseDetails('bulkDetails')">ⓘ</button></span>
+                        <span class="result-label">Bulk Phase (<span id="bulkPhaseHeat">--</span>&nbsp;heat to ~90% dry): <button class="info-button" onclick="togglePhaseDetails('bulkDetails')">ⓘ</button></span>
                         <span class="result-value" id="bulkPhase">--</span>
                     </div>
                     <div class="phase-details" id="bulkDetails">
@@ -658,27 +680,47 @@
         }
 
         function calculateEnergyCost(recommendations, electricityPrice) {
-            // Hair dryer power consumption in watts by heat setting
-            const powerMap = {
-                'Low': 800,
-                'Medium': 1200,
-                'High': 1500
-            };
+             // Hair dryer power consumption in watts by heat setting
+             const powerMap = {
+                 'Low': 800,
+                 'Medium': 1200,
+                 'High': 1500
+             };
 
-            const powerWatts = powerMap[recommendations.heatSetting] || 1200;
-            // Only count blow-dry time, not air-dry time (which uses 0 watts)
-            const blowDryTime = recommendations.bulkTime + recommendations.finishTime;
-            const totalTimeHours = blowDryTime / 60;
-            const energyKwh = (powerWatts / 1000) * totalTimeHours;
-            const cost = energyKwh * electricityPrice;
+             // Determine heat settings for each phase
+             const bulkHeatSetting = recommendations.heatSetting;
+             // Finish phase typically uses lower heat - one level down from bulk
+             const heatSettingNames = ['Low', 'Medium', 'High'];
+             const bulkIndex = heatSettingNames.indexOf(bulkHeatSetting);
+             const finishIndex = Math.max(0, bulkIndex - 1); // One level lower, minimum Low
+             const finishHeatSetting = heatSettingNames[finishIndex];
 
-            return {
-                powerWatts,
-                energyKwh,
-                electricityPrice,
-                cost
-            };
-        }
+             // Calculate energy for each phase separately
+             const bulkPowerWatts = powerMap[bulkHeatSetting] || 1200;
+             const finishPowerWatts = powerMap[finishHeatSetting] || 800;
+             
+             const bulkTimeHours = recommendations.bulkTime / 60;
+             const finishTimeHours = recommendations.finishTime / 60;
+             
+             const bulkEnergy = (bulkPowerWatts / 1000) * bulkTimeHours;
+             const finishEnergy = (finishPowerWatts / 1000) * finishTimeHours;
+             const energyKwh = bulkEnergy + finishEnergy;
+             
+             const cost = energyKwh * electricityPrice;
+             
+             // Return average power for display
+             const totalTimeHours = bulkTimeHours + finishTimeHours;
+             const avgPowerWatts = totalTimeHours > 0 ? Math.round((energyKwh * 1000) / totalTimeHours) : 1200;
+
+             return {
+                 powerWatts: avgPowerWatts,
+                 bulkPowerWatts,
+                 finishPowerWatts,
+                 energyKwh,
+                 electricityPrice,
+                 cost
+             };
+         }
 
         function calculateResultsForPriorities(weather, priorities) {
              const hairType = document.getElementById('hairType').value;
