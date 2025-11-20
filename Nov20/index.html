@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hair Dryer Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-teal-700: rgba(26, 104, 115, 1);
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: var(--color-slate-900);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-primary-active: var(--color-teal-700);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+            --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-charcoal-700: rgba(31, 33, 33, 1);
+                --color-charcoal-800: rgba(38, 40, 40, 1);
+                --color-gray-300: rgba(167, 169, 169, 1);
+                --color-teal-300: rgba(50, 184, 198, 1);
+                --color-teal-400: rgba(45, 166, 178, 1);
+                --color-teal-800: rgba(41, 150, 161, 1);
+                --color-gray-400-rgb: 119, 124, 124;
+                --color-teal-300-rgb: 50, 184, 198;
+                --color-background: var(--color-charcoal-700);
+                --color-surface: var(--color-charcoal-800);
+                --color-text: var(--color-gray-200);
+                --color-text-secondary: rgba(var(--color-gray-300), 0.7);
+                --color-primary: var(--color-teal-300);
+                --color-primary-hover: var(--color-teal-400);
+                --color-primary-active: var(--color-teal-800);
+                --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+                --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family-base);
+            margin: 0;
+            padding: var(--space-20);
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 30px;
+            font-weight: 600;
+            margin: 0 0 var(--space-24) 0;
+            color: var(--color-text);
+        }
+
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-20);
+            margin-bottom: var(--space-20);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-16);
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: var(--space-8);
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: var(--space-8) var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        button {
+            width: 100%;
+            padding: var(--space-12) var(--space-20);
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--color-primary-hover);
+        }
+
+        button:active {
+            background: var(--color-primary-active);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.visible {
+            display: block;
+        }
+
+        .result-section {
+            margin-bottom: var(--space-20);
+        }
+
+        .result-section h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 var(--space-12) 0;
+            color: var(--color-text);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-8) 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .warning {
+            background: rgba(230, 129, 97, 0.1);
+            border: 1px solid rgba(230, 129, 97, 0.3);
+            border-radius: var(--radius-base);
+            padding: var(--space-12);
+            margin-top: var(--space-12);
+            font-size: 14px;
+        }
+
+        .info {
+            background: rgba(33, 128, 141, 0.1);
+            border: 1px solid rgba(33, 128, 141, 0.3);
+            border-radius: var(--radius-base);
+            padding: var(--space-12);
+            margin-top: var(--space-12);
+            font-size: 14px;
+        }
+
+        .error {
+            color: #c0152f;
+            margin-top: var(--space-8);
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: var(--space-20);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: var(--space-20);
+        }
+
+        .recommended-badge {
+            display: inline-block;
+            background: rgba(33, 128, 141, 0.2);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--radius-base);
+            padding: var(--space-8) var(--space-12);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-top: var(--space-12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .warning {
+                background: rgba(230, 129, 97, 0.15);
+            }
+            .info {
+                background: rgba(50, 184, 198, 0.15);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hair Dryer Assistant</h1>
+        
+        <div class="card">
+            <div class="form-group">
+                <label for="location">Location (City or Coordinates)</label>
+                <input type="text" id="location" placeholder="Barcelona or 41.3874,2.1686" value="Barcelona">
+                <div class="error" id="locationError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="hairType">Hair Thickness</label>
+                <select id="hairType">
+                    <option value="fine">Fine</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="thick">Thick</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="porosity">Hair Porosity</label>
+                <select id="porosity">
+                    <option value="low">Low</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="wetness">Towel-Dried Wetness (%)</label>
+                <input type="number" id="wetness" min="50" max="100" value="75">
+            </div>
+
+            <button id="generateBtn">Generate Recommendations</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <div class="result-section">
+                    <h2>Cost Analysis by Priority</h2>
+                    <div class="chart-container">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                    <div id="recommendationBadge"></div>
+                </div>
+
+                <div class="result-section">
+                    <h2>Drying Recommendation</h2>
+                    <div class="result-item">
+                        <span class="result-label">Time Priority</span>
+                        <span class="result-value" id="recommendedPriority">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Estimated Cost</span>
+                        <span class="result-value" id="recommendedCost">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Drying Time</span>
+                        <span class="result-value" id="recommendedTime">--</span>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h2>Environment Conditions</h2>
+                    <div class="result-item">
+                        <span class="result-label">Temperature</span>
+                        <span class="result-value" id="tempValue">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Humidity</span>
+                        <span class="result-value" id="humidityValue">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Drying Power Index</span>
+                        <span class="result-value" id="dpValue">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Environment Type</span>
+                        <span class="result-value" id="envType">--</span>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h2>Recommended Settings</h2>
+                    <div class="result-item">
+                        <span class="result-label">Heat Setting</span>
+                        <span class="result-value" id="heatSetting">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Temperature Range</span>
+                        <span class="result-value" id="tempRange">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Airflow</span>
+                        <span class="result-value" id="airflow">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Distance from Hair</span>
+                        <span class="result-value" id="distance">--</span>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h2>Drying Protocol</h2>
+                    <div class="result-item">
+                        <span class="result-label">Bulk Phase (to ~90% dry)</span>
+                        <span class="result-value" id="bulkPhase">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Finish Phase (last 10%)</span>
+                        <span class="result-value" id="finishPhase">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Estimated Total Time</span>
+                        <span class="result-value" id="totalTime">--</span>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h2>Energy Cost</h2>
+                    <div class="result-item">
+                        <span class="result-label">Electricity Price</span>
+                        <span class="result-value" id="electricityRate">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Hair Dryer Power Consumption</span>
+                        <span class="result-value" id="powerConsumption">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Energy Used</span>
+                        <span class="result-value" id="energyUsed">--</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Estimated Cost</span>
+                        <span class="result-value" id="totalCost">--</span>
+                    </div>
+                    <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: var(--space-12);">
+                        <span id="priceSource">Auto-detected for your location</span>
+                    </div>
+                </div>
+
+                <div id="warningBox"></div>
+                <div id="infoBox"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const results = document.getElementById('results');
+        const locationInput = document.getElementById('location');
+        const locationError = document.getElementById('locationError');
+        const priceSource = document.getElementById('priceSource');
+
+        generateBtn.addEventListener('click', async () => {
+            locationError.textContent = '';
+            const location = locationInput.value.trim();
+            
+            if (!location) {
+                locationError.textContent = 'Please enter a location';
+                return;
+            }
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Loading weather and electricity data...';
+
+            try {
+                const weather = await fetchWeather(location);
+                const electricityPrice = await fetchElectricityPrice(location, weather);
+                priceSource.textContent = `Auto-detected for your location`;
+                
+                // Calculate results for all priority levels (0 to 1, step 0.1)
+                const priorities = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+                const allResults = calculateResultsForPriorities(weather, priorities);
+                const costsData = allResults.map(rec => calculateEnergyCost(rec, electricityPrice));
+                
+                // Find lowest cost option
+                const lowestCostIndex = costsData.reduce((minIdx, cost, idx) => 
+                    cost.cost < costsData[minIdx].cost ? idx : minIdx, 0);
+                const recommendedRec = allResults[lowestCostIndex];
+                const recommendedCost = costsData[lowestCostIndex];
+                
+                displayResults(weather, allResults, costsData, priorities, lowestCostIndex, recommendedRec, recommendedCost);
+                results.classList.add('visible');
+            } catch (error) {
+                locationError.textContent = error.message;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Recommendations';
+            }
+        });
+
+        async function fetchWeather(location) {
+            // Using Open-Meteo API (free, no API key required)
+            let lat, lon;
+
+            // Check if coordinates format
+            if (location.includes(',')) {
+                [lat, lon] = location.split(',').map(s => parseFloat(s.trim()));
+                if (isNaN(lat) || isNaN(lon)) {
+                    throw new Error('Invalid coordinates format. Use: latitude,longitude');
+                }
+            } else {
+                // Geocode city name
+                const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`;
+                const geoResponse = await fetch(geoUrl);
+                const geoData = await geoResponse.json();
+                
+                if (!geoData.results || geoData.results.length === 0) {
+                    throw new Error('Location not found. Try coordinates format: lat,lon');
+                }
+                
+                lat = geoData.results[0].latitude;
+                lon = geoData.results[0].longitude;
+            }
+
+            // Fetch weather
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m&timezone=auto`;
+            const weatherResponse = await fetch(weatherUrl);
+            const weatherData = await weatherResponse.json();
+
+            return {
+                temperature: weatherData.current.temperature_2m,
+                humidity: weatherData.current.relative_humidity_2m,
+                location: location,
+                latitude: lat,
+                longitude: lon
+            };
+        }
+
+        async function fetchElectricityPrice(location, weather) {
+            // Try to estimate electricity price based on country/region
+            // Default European prices based on typical rates
+            const priceMap = {
+                'spain': 0.28,
+                'barcelona': 0.28,
+                'madrid': 0.28,
+                'france': 0.22,
+                'paris': 0.22,
+                'germany': 0.35,
+                'berlin': 0.35,
+                'italy': 0.26,
+                'rome': 0.26,
+                'uk': 0.28,
+                'london': 0.28,
+                'netherlands': 0.30,
+                'amsterdam': 0.30,
+                'portugal': 0.25,
+                'lisbon': 0.25,
+                'sweden': 0.18,
+                'denmark': 0.24,
+                'poland': 0.20,
+                'greece': 0.24,
+                'athens': 0.24,
+                'usa': 0.16,
+                'canada': 0.14,
+                'australia': 0.32,
+                'japan': 0.30
+            };
+
+            const locationLower = location.toLowerCase();
+            
+            // Check for direct match
+            for (let key in priceMap) {
+                if (locationLower.includes(key)) {
+                    return priceMap[key];
+                }
+            }
+
+            // Try reverse geocoding to get country
+            try {
+                const reverseGeoUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${weather.latitude}&lon=${weather.longitude}`;
+                const reverseGeoResponse = await fetch(reverseGeoUrl);
+                const reverseGeoData = await reverseGeoResponse.json();
+                
+                if (reverseGeoData.address && reverseGeoData.address.country) {
+                    const country = reverseGeoData.address.country.toLowerCase();
+                    for (let key in priceMap) {
+                        if (country.includes(key) || key.includes(country)) {
+                            return priceMap[key];
+                        }
+                    }
+                }
+            } catch (e) {
+                // Fallback if reverse geocoding fails
+            }
+
+            // Default to European average
+            return 0.26;
+        }
+
+        function calculateEnergyCost(recommendations, electricityPrice) {
+            // Hair dryer power consumption in watts by heat setting
+            const powerMap = {
+                'Low': 800,
+                'Medium': 1200,
+                'High': 1500
+            };
+
+            const powerWatts = powerMap[recommendations.heatSetting] || 1200;
+            const totalTimeHours = recommendations.totalTime / 60;
+            const energyKwh = (powerWatts / 1000) * totalTimeHours;
+            const cost = energyKwh * electricityPrice;
+
+            return {
+                powerWatts,
+                energyKwh,
+                electricityPrice,
+                cost
+            };
+        }
+
+        function calculateResultsForPriorities(weather, priorities) {
+            const hairType = document.getElementById('hairType').value;
+            const porosity = document.getElementById('porosity').value;
+            const wetness = parseInt(document.getElementById('wetness').value);
+
+            return priorities.map(priority => {
+                return calculateRecommendations(weather, hairType, porosity, wetness, priority);
+            });
+        }
+
+        function calculateRecommendations(weather, hairType, porosity, wetness, timePriority) {
+            // If called from old code (with weather only), use current inputs
+            if (typeof hairType === 'undefined') {
+                hairType = document.getElementById('hairType').value;
+                porosity = document.getElementById('porosity').value;
+                wetness = parseInt(document.getElementById('wetness').value);
+                timePriority = parseFloat(document.getElementById('priority').value);
+            }
+
+            const temp = weather.temperature;
+            const rh = weather.humidity;
+
+            // Calculate Drying Power
+            const dp = (1 - rh / 100) * (1 + 0.02 * (temp - 20));
+
+            // Base heat index from hair type
+            let heatIndex = { fine: 0, medium: 1, thick: 2 }[hairType];
+
+            // Adjust for porosity
+            if (porosity === 'low') heatIndex += 1;
+            if (porosity === 'high') heatIndex -= 1;
+
+            // Environment adjustment
+            if (dp < 0.6) heatIndex += 1;
+            if (dp > 1.2) heatIndex -= 1;
+
+            // Time priority adjustment
+            heatIndex += Math.round(0.5 * (timePriority - 0.5));
+
+            // Clamp to valid range
+            heatIndex = Math.max(0, Math.min(2, heatIndex));
+
+            // Map to settings
+            const heatSettings = [
+                { name: 'Low', temp: '50-60°C', distance: '18-20 cm' },
+                { name: 'Medium', temp: '70-80°C', distance: '15-18 cm' },
+                { name: 'High', temp: '90-100°C', distance: '18-20 cm' }
+            ];
+
+            const currentHeat = heatSettings[heatIndex];
+
+            // Airflow recommendation
+            const airflow = (hairType === 'fine' && timePriority < 0.5) ? 'Medium' : 'High';
+
+            // Time estimates (minutes)
+            let bulkTime = 2 + (wetness - 50) / 25; // Base 2-4 min
+            bulkTime *= { fine: 0.7, medium: 1.0, thick: 1.4 }[hairType];
+            bulkTime /= (0.5 + dp * 0.5); // Environment factor
+            bulkTime /= (1 + timePriority * 0.3); // Priority factor
+
+            let finishTime = 0.5 + (wetness - 50) / 50;
+            finishTime *= { fine: 0.6, medium: 1.0, thick: 1.3 }[hairType];
+
+            const totalTime = bulkTime + finishTime;
+
+            // Environment type
+            let envType = '';
+            if (rh >= 70 && temp <= 18) envType = 'Humid & Cool';
+            else if (rh >= 70 && temp > 18) envType = 'Humid & Warm';
+            else if (rh < 70 && temp <= 18) envType = 'Dry & Cool';
+            else envType = 'Dry & Warm';
+
+            // Warnings and tips
+            const warnings = [];
+            const tips = [];
+
+            if (heatIndex === 2) {
+                warnings.push('⚠️ Using high heat setting. Keep the dryer moving continuously and maintain distance to prevent damage.');
+            }
+            if (dp < 0.6) {
+                tips.push('💡 High humidity detected. Emphasize airflow and movement. Expect longer drying time.');
+            }
+            if (dp > 1.2) {
+                tips.push('💡 Favorable drying conditions. You can use lower heat for gentler drying.');
+            }
+            if (hairType === 'fine' && heatIndex >= 1) {
+                warnings.push('⚠️ Fine hair is more vulnerable to heat damage. Consider reducing heat if time allows.');
+            }
+            if (wetness > 85) {
+                tips.push('💡 Hair is quite wet. Towel-dry more thoroughly to reduce heat exposure time.');
+            }
+
+            return {
+                dp,
+                envType,
+                heatIndex,
+                heatSetting: currentHeat.name,
+                tempRange: currentHeat.temp,
+                distance: currentHeat.distance,
+                airflow,
+                bulkTime: Math.round(bulkTime * 10) / 10,
+                finishTime: Math.round(finishTime * 10) / 10,
+                totalTime: Math.round(totalTime * 10) / 10,
+                warnings,
+                tips
+            };
+        }
+
+        function displayResults(weather, allResults, costsData, priorities, lowestCostIndex, recommendedRec, recommendedCost) {
+            // Store data globally for click handler
+            window.currentWeather = weather;
+            window.currentAllResults = allResults;
+            
+            // Display chart
+            displayCostChart(priorities, costsData, lowestCostIndex);
+            
+            // Display recommendation badge
+            const recommendationBadge = document.getElementById('recommendationBadge');
+            recommendationBadge.innerHTML = `<div class="recommended-badge">✓ Recommended: Priority ${priorities[lowestCostIndex].toFixed(1)} (Lowest Cost)</div>`;
+            
+            // Display recommended settings
+            document.getElementById('recommendedPriority').textContent = `${priorities[lowestCostIndex].toFixed(1)} (${priorities[lowestCostIndex] < 0.5 ? 'Gentle' : priorities[lowestCostIndex] > 0.5 ? 'Fast' : 'Balanced'})`;
+            document.getElementById('recommendedCost').textContent = `€${recommendedCost.cost.toFixed(3)}`;
+            document.getElementById('recommendedTime').textContent = `${recommendedRec.totalTime} minutes`;
+            
+            // Display environment info
+            document.getElementById('tempValue').textContent = `${weather.temperature.toFixed(1)}°C`;
+            document.getElementById('humidityValue').textContent = `${weather.humidity}%`;
+            document.getElementById('dpValue').textContent = recommendedRec.dp.toFixed(2);
+            document.getElementById('envType').textContent = recommendedRec.envType;
+            
+            // Display recommended settings details
+            document.getElementById('heatSetting').textContent = recommendedRec.heatSetting;
+            document.getElementById('tempRange').textContent = recommendedRec.tempRange;
+            document.getElementById('airflow').textContent = recommendedRec.airflow;
+            document.getElementById('distance').textContent = recommendedRec.distance;
+            
+            document.getElementById('bulkPhase').textContent = `${recommendedRec.bulkTime} min (${recommendedRec.heatSetting} heat, ${recommendedRec.airflow} airflow)`;
+            document.getElementById('finishPhase').textContent = `${recommendedRec.finishTime} min (reduce to Medium/Low heat)`;
+            document.getElementById('totalTime').textContent = `${recommendedRec.totalTime} minutes`;
+
+            // Energy cost display
+            document.getElementById('powerConsumption').textContent = `${recommendedCost.powerWatts}W`;
+            document.getElementById('energyUsed').textContent = `${recommendedCost.energyKwh.toFixed(3)} kWh`;
+            document.getElementById('electricityRate').textContent = `€${recommendedCost.electricityPrice.toFixed(4)}/kWh`;
+            document.getElementById('totalCost').textContent = `€${recommendedCost.cost.toFixed(3)}`;
+
+            const warningBox = document.getElementById('warningBox');
+            const infoBox = document.getElementById('infoBox');
+            
+            warningBox.innerHTML = recommendedRec.warnings.length > 0 
+                ? `<div class="warning">${recommendedRec.warnings.join('<br>')}</div>` 
+                : '';
+            
+            infoBox.innerHTML = recommendedRec.tips.length > 0 
+                ? `<div class="info">${recommendedRec.tips.join('<br>')}</div>` 
+                : '';
+        }
+
+        function displayCostChart(priorities, costsData, lowestCostIndex) {
+            // Store data globally for click handler
+            window.chartData = {
+                priorities,
+                costsData,
+                lowestCostIndex,
+                allResults: window.currentAllResults,
+                weather: window.currentWeather
+            };
+
+            const ctx = document.getElementById('costChart').getContext('2d');
+            const costs = costsData.map(c => c.cost);
+            const labels = priorities.map(p => `${(p * 100).toFixed(0)}%`);
+            const backgroundColors = priorities.map((_, idx) => 
+                idx === lowestCostIndex ? 'rgba(33, 128, 141, 0.8)' : 'rgba(33, 128, 141, 0.3)'
+            );
+            const borderColors = priorities.map((_, idx) => 
+                idx === lowestCostIndex ? 'rgba(33, 128, 141, 1)' : 'rgba(33, 128, 141, 0.5)'
+            );
+
+            // Destroy existing chart if it exists
+            if (window.costChartInstance) {
+                window.costChartInstance.destroy();
+            }
+
+            window.costChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Estimated Cost (€)',
+                        data: costs,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim()
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cost (€)'
+                            },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim()
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--color-border').trim()
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time Priority (0% = Gentle, 100% = Fast) - Click to view details',
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim()
+                            },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim()
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--color-border').trim()
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Add click handler to chart
+            document.getElementById('costChart').onclick = function(evt) {
+                const points = window.costChartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+                if (points.length > 0) {
+                    const index = points[0].index;
+                    updateResultsForPriority(index);
+                }
+            };
+        }
+
+        function updateResultsForPriority(index) {
+            const data = window.chartData;
+            const selectedRec = data.allResults[index];
+            const selectedCost = data.costsData[index];
+            const selectedPriority = data.priorities[index];
+            
+            // Update recommendation badge
+            const isLowest = index === data.lowestCostIndex;
+            const recommendationBadge = document.getElementById('recommendationBadge');
+            if (isLowest) {
+                recommendationBadge.innerHTML = `<div class="recommended-badge">✓ Recommended: Priority ${selectedPriority.toFixed(1)} (Lowest Cost)</div>`;
+            } else {
+                recommendationBadge.innerHTML = `<div class="recommended-badge">Priority ${selectedPriority.toFixed(1)} selected</div>`;
+            }
+            
+            // Update recommended settings
+            document.getElementById('recommendedPriority').textContent = `${selectedPriority.toFixed(1)} (${selectedPriority < 0.5 ? 'Gentle' : selectedPriority > 0.5 ? 'Fast' : 'Balanced'})`;
+            document.getElementById('recommendedCost').textContent = `€${selectedCost.cost.toFixed(3)}`;
+            document.getElementById('recommendedTime').textContent = `${selectedRec.totalTime} minutes`;
+            
+            // Update environment info
+            document.getElementById('dpValue').textContent = selectedRec.dp.toFixed(2);
+            document.getElementById('envType').textContent = selectedRec.envType;
+            
+            // Update recommended settings details
+            document.getElementById('heatSetting').textContent = selectedRec.heatSetting;
+            document.getElementById('tempRange').textContent = selectedRec.tempRange;
+            document.getElementById('airflow').textContent = selectedRec.airflow;
+            document.getElementById('distance').textContent = selectedRec.distance;
+            
+            document.getElementById('bulkPhase').textContent = `${selectedRec.bulkTime} min (${selectedRec.heatSetting} heat, ${selectedRec.airflow} airflow)`;
+            document.getElementById('finishPhase').textContent = `${selectedRec.finishTime} min (reduce to Medium/Low heat)`;
+            document.getElementById('totalTime').textContent = `${selectedRec.totalTime} minutes`;
+
+            // Update energy cost display
+            document.getElementById('powerConsumption').textContent = `${selectedCost.powerWatts}W`;
+            document.getElementById('energyUsed').textContent = `${selectedCost.energyKwh.toFixed(3)} kWh`;
+            document.getElementById('electricityRate').textContent = `€${selectedCost.electricityPrice.toFixed(4)}/kWh`;
+            document.getElementById('totalCost').textContent = `€${selectedCost.cost.toFixed(3)}`;
+
+            const warningBox = document.getElementById('warningBox');
+            const infoBox = document.getElementById('infoBox');
+            
+            warningBox.innerHTML = selectedRec.warnings.length > 0 
+                ? `<div class="warning">${selectedRec.warnings.join('<br>')}</div>` 
+                : '';
+            
+            infoBox.innerHTML = selectedRec.tips.length > 0 
+                ? `<div class="info">${selectedRec.tips.join('<br>')}</div>` 
+                : '';
+        }
+
+        // Auto-load on page load with default location
+        window.addEventListener('load', () => {
+            if (locationInput.value) {
+                generateBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
+
