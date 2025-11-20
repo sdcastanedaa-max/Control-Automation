@@ -332,11 +332,6 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="wetness">Towel-Dried Wetness (%)</label>
-                <input type="number" id="wetness" min="50" max="100" value="75">
-            </div>
-
             <button id="generateBtn">Generate Recommendations</button>
         </div>
 
@@ -364,6 +359,37 @@
 
                 <div class="result-section">
                     <h2>Drying Protocol</h2>
+                    <div class="result-item" id="towelDryPhaseItem">
+                        <span class="result-label" id="towelDryPhaseLabel">Towel-Dry Phase: <button class="info-button" onclick="togglePhaseDetails('towelDryDetails')">ⓘ</button></span>
+                        <span class="result-value" id="towelDryPhase">--</span>
+                    </div>
+                    <div class="phase-details" id="towelDryDetails">
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Method</span>
+                            <span class="phase-detail-value">Gently squeeze and pat with towel</span>
+                        </div>
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Duration</span>
+                            <span class="phase-detail-value" id="towelDryDuration">--</span>
+                        </div>
+                        <div class="phase-detail-item">
+                            <span class="phase-detail-label">Reduces blow-dry time by</span>
+                            <span class="phase-detail-value" id="towelDryReduction">--</span>
+                        </div>
+                        <div style="margin-top: var(--space-12); padding-top: var(--space-12); border-top: 1px solid var(--color-border); font-size: 12px;">
+                            <div style="font-weight: 600; margin-bottom: var(--space-8); color: var(--color-text);">Visual Progress Guide:</div>
+                            <div style="display: flex; flex-direction: column; gap: var(--space-8); color: var(--color-text-secondary);">
+                                <div>🚫 Dripping or pooling: Too wet (0-30%)</div>
+                                <div>💧 Towel heavy, hair saturated: ~40%</div>
+                                <div>🤏 Towel less damp, drips stop: ~60-70%</div>
+                                <div>✓ Hair moist, lifts easily, ready to dry: ~80%</div>
+                            </div>
+                            <div style="margin-top: var(--space-12); color: var(--color-text); font-size: 11px; font-style: italic;">
+                                Thorough towel drying reduces heat exposure and minimizes damage to hair structure. Use microfiber or cotton towels and pat gently—never rub vigorously.
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="result-item" id="airDryPhaseItem">
                         <span class="result-label" id="airDryPhaseLabel">Air Dry Phase (room temperature): <button class="info-button" onclick="togglePhaseDetails('airDryDetails')">ⓘ</button></span>
                         <span class="result-value" id="airDryPhase">--</span>
@@ -439,7 +465,7 @@
                 </div>
 
                 <div class="result-section">
-                    <h2>Cost Analysis by Priority</h2>
+                    <h2>Cost Analysis by Priority & Towel-Dry Level</h2>
                     <div class="chart-container">
                         <canvas id="costChart"></canvas>
                     </div>
@@ -476,9 +502,11 @@
                 const electricityPrice = await fetchElectricityPrice(location, weather);
                 priceSource.textContent = `Auto-detected for your location`;
                 
-                // Calculate results for all priority levels (0 to 1, step 0.1)
+                // Calculate results for all priority levels and towel-dry levels
                 const priorities = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-                const allResults = calculateResultsForPriorities(weather, priorities);
+                const towelDryLevels = [50, 65, 80]; // % remaining after towel dry
+                
+                const allResults = calculateResultsFor2D(weather, priorities, towelDryLevels);
                 const costsData = allResults.map(rec => calculateEnergyCost(rec, electricityPrice));
                 
                 // Find lowest cost option
@@ -487,7 +515,7 @@
                 const recommendedRec = allResults[lowestCostIndex];
                 const recommendedCost = costsData[lowestCostIndex];
                 
-                displayResults(weather, allResults, costsData, priorities, lowestCostIndex, recommendedRec, recommendedCost);
+                displayResults(weather, allResults, costsData, priorities, towelDryLevels, lowestCostIndex, recommendedRec, recommendedCost);
                 results.classList.add('visible');
             } catch (error) {
                 locationError.textContent = error.message;
@@ -618,14 +646,30 @@
         }
 
         function calculateResultsForPriorities(weather, priorities) {
-            const hairType = document.getElementById('hairType').value;
-            const porosity = document.getElementById('porosity').value;
-            const wetness = parseInt(document.getElementById('wetness').value);
+             const hairType = document.getElementById('hairType').value;
+             const porosity = document.getElementById('porosity').value;
+             const wetness = 75; // Default wetness after towel dry
 
-            return priorities.map(priority => {
-                return calculateRecommendations(weather, hairType, porosity, wetness, priority);
-            });
-        }
+             return priorities.map(priority => {
+                 return calculateRecommendations(weather, hairType, porosity, wetness, priority);
+             });
+         }
+
+         function calculateResultsFor2D(weather, priorities, towelDryLevels) {
+             const hairType = document.getElementById('hairType').value;
+             const porosity = document.getElementById('porosity').value;
+             
+             const results = [];
+             for (let towelLevel of towelDryLevels) {
+                 for (let priority of priorities) {
+                     const rec = calculateRecommendations(weather, hairType, porosity, towelLevel, priority);
+                     rec.towelDryLevel = towelLevel;
+                     rec.priority = priority;
+                     results.push(rec);
+                 }
+             }
+             return results;
+         }
 
         function evaluateAirDryingSuitability(temperature, humidity, dryingPower, timePriority) {
             // Check if environment is safe for partial air drying
@@ -769,13 +813,14 @@
             };
         }
 
-        function displayResults(weather, allResults, costsData, priorities, lowestCostIndex, recommendedRec, recommendedCost) {
+        function displayResults(weather, allResults, costsData, priorities, towelDryLevels, lowestCostIndex, recommendedRec, recommendedCost) {
             // Store data globally for click handler
             window.currentWeather = weather;
             window.currentAllResults = allResults;
+            window.towelDryLevels = towelDryLevels;
             
             // Display chart
-            displayCostChart(priorities, costsData, lowestCostIndex);
+            displayCostChart(priorities, towelDryLevels, costsData, lowestCostIndex);
             
             // Display recommendation badge
              const recommendationBadge = document.getElementById('recommendationBadge');
@@ -786,6 +831,9 @@
              document.getElementById('humidityValue').textContent = `${weather.humidity}%`;
              document.getElementById('dpValue').textContent = recommendedRec.dp.toFixed(2);
              document.getElementById('envType').textContent = recommendedRec.envType;
+            
+            // Display towel-dry phase info
+            updateTowelDryPhaseInfo(recommendedRec);
             
             // Display air dry phase
             const airDryPhaseItem = document.getElementById('airDryPhaseItem');
@@ -837,10 +885,11 @@
                 : '';
         }
 
-        function displayCostChart(priorities, costsData, lowestCostIndex) {
+        function displayCostChart(priorities, towelDryLevels, costsData, lowestCostIndex) {
             // Store data globally for click handler
             window.chartData = {
                 priorities,
+                towelDryLevels,
                 costsData,
                 lowestCostIndex,
                 allResults: window.currentAllResults,
@@ -848,14 +897,31 @@
             };
 
             const ctx = document.getElementById('costChart').getContext('2d');
-            const costs = costsData.map(c => c.cost);
+            
+            // Create datasets for each towel-dry level
+            const datasets = [];
+            const colors = [
+                { bg: 'rgba(33, 128, 141, 0.8)', border: 'rgba(33, 128, 141, 1)' },
+                { bg: 'rgba(33, 128, 141, 0.5)', border: 'rgba(33, 128, 141, 0.7)' },
+                { bg: 'rgba(33, 128, 141, 0.3)', border: 'rgba(33, 128, 141, 0.5)' }
+            ];
+            
+            for (let i = 0; i < towelDryLevels.length; i++) {
+                const towelLevel = towelDryLevels[i];
+                const startIdx = i * priorities.length;
+                const endIdx = startIdx + priorities.length;
+                const levelCosts = costsData.slice(startIdx, endIdx).map(c => c.cost);
+                
+                datasets.push({
+                    label: `${towelLevel}% Wetness`,
+                    data: levelCosts,
+                    backgroundColor: colors[i].bg,
+                    borderColor: colors[i].border,
+                    borderWidth: 2
+                });
+            }
+            
             const labels = priorities.map(p => `${(p * 100).toFixed(0)}%`);
-            const backgroundColors = priorities.map((_, idx) => 
-                idx === lowestCostIndex ? 'rgba(33, 128, 141, 0.8)' : 'rgba(33, 128, 141, 0.3)'
-            );
-            const borderColors = priorities.map((_, idx) => 
-                idx === lowestCostIndex ? 'rgba(33, 128, 141, 1)' : 'rgba(33, 128, 141, 0.5)'
-            );
 
             // Destroy existing chart if it exists
             if (window.costChartInstance) {
@@ -866,13 +932,7 @@
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Estimated Cost (€)',
-                        data: costs,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 2
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
@@ -902,7 +962,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Time Priority (0% = Gentle, 100% = Fast) - Click to view details',
+                                text: 'Time Priority (0% = Gentle, 100% = Fast) - Click bars to view details',
                                 color: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim()
                             },
                             ticks: {
@@ -920,30 +980,47 @@
             document.getElementById('costChart').onclick = function(evt) {
                 const points = window.costChartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
                 if (points.length > 0) {
+                    const datasetIndex = points[0].datasetIndex;
                     const index = points[0].index;
-                    updateResultsForPriority(index);
+                    updateResultsForPriority(datasetIndex, index);
                 }
             };
         }
 
-        function updateResultsForPriority(index) {
+        function updateTowelDryPhaseInfo(rec) {
+            const towelDryLevel = rec.towelDryLevel || 75;
+            const dryPercentage = 100 - towelDryLevel;
+            const estimatedTowelTime = dryPercentage <= 20 ? 1 : dryPercentage <= 35 ? 2 : 3;
+            const reduction = (rec.bulkTime + rec.finishTime > 0) ? Math.round((1 - (rec.bulkTime + rec.finishTime) / (rec.bulkTime + rec.finishTime + estimatedTowelTime)) * 100) : 0;
+            
+            document.getElementById('towelDryPhase').textContent = `${estimatedTowelTime} min`;
+            document.getElementById('towelDryDuration').textContent = `${estimatedTowelTime} minute${estimatedTowelTime > 1 ? 's' : ''}`;
+            document.getElementById('towelDryReduction').textContent = `~${reduction}%`;
+        }
+
+        function updateResultsForPriority(datasetIndex, priorityIndex) {
             const data = window.chartData;
-            const selectedRec = data.allResults[index];
-            const selectedCost = data.costsData[index];
-            const selectedPriority = data.priorities[index];
+            const resultIndex = datasetIndex * data.priorities.length + priorityIndex;
+            const selectedRec = data.allResults[resultIndex];
+            const selectedCost = data.costsData[resultIndex];
+            const selectedPriority = data.priorities[priorityIndex];
+            const selectedTowelDry = data.towelDryLevels[datasetIndex];
             
             // Update recommendation badge
-            const isLowest = index === data.lowestCostIndex;
+            const isLowest = resultIndex === data.lowestCostIndex;
             const recommendationBadge = document.getElementById('recommendationBadge');
             if (isLowest) {
-                recommendationBadge.innerHTML = `<div class="recommended-badge">✓ Recommended: Priority ${selectedPriority.toFixed(1)} (Lowest Cost)</div>`;
+                recommendationBadge.innerHTML = `<div class="recommended-badge">✓ Recommended: Priority ${selectedPriority.toFixed(1)}, ${selectedTowelDry}% Wetness (Lowest Cost)</div>`;
             } else {
-                recommendationBadge.innerHTML = `<div class="recommended-badge">Priority ${selectedPriority.toFixed(1)} selected</div>`;
+                recommendationBadge.innerHTML = `<div class="recommended-badge">Priority ${selectedPriority.toFixed(1)}, ${selectedTowelDry}% Wetness selected</div>`;
             }
             
             // Update environment info
             document.getElementById('dpValue').textContent = selectedRec.dp.toFixed(2);
             document.getElementById('envType').textContent = selectedRec.envType;
+            
+            // Update towel-dry phase info
+            updateTowelDryPhaseInfo(selectedRec);
             
             // Update air dry phase
             const airDryPhaseItem = document.getElementById('airDryPhaseItem');
