@@ -1117,6 +1117,7 @@
             const hash = window.location.hash.slice(1); // Remove #
             if (hash) {
                 locationInput.value = decodeURIComponent(hash);
+                generateBtn.click();
             }
         }
 
@@ -1130,12 +1131,12 @@
         // Save location when typing
         locationInput.addEventListener('change', saveLocationToUrl);
 
+        // Auto-load when hash changes
+        window.addEventListener('hashchange', loadLocationFromUrl);
+
         // Auto-load on page load with default location
         window.addEventListener('load', () => {
             loadLocationFromUrl();
-            if (locationInput.value) {
-                generateBtn.click();
-            }
         });
         </script>
 </body>
