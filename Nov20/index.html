@@ -184,10 +184,8 @@
         .result-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: var(--space-12) 0;
+            padding: var(--space-8) 0;
             border-bottom: 1px solid var(--color-border);
-            line-height: 1.4;
         }
 
         .result-item:last-child {
@@ -197,6 +195,7 @@
         .result-label {
              font-weight: 500;
              color: var(--color-text-secondary);
+             white-space: nowrap;
              display: flex;
              align-items: center;
              gap: var(--space-4);
@@ -448,10 +447,10 @@
                         </div>
                     </div>
 
-                    <div class="result-item" style="margin-top: var(--space-12);">
-                        <span class="result-label">Finish Phase (Medium/Low heat to ~10%): <button class="info-button" onclick="togglePhaseDetails('finishDetails')">ⓘ</button></span>
-                        <span class="result-value" id="finishPhase">--</span>
-                    </div>
+                    <div class="result-item">
+                         <span class="result-label">Finish Phase (Medium/Low heat to ~10%): <button class="info-button" onclick="togglePhaseDetails('finishDetails')">ⓘ</button></span>
+                         <span class="result-value" id="finishPhase">--</span>
+                     </div>
                     <div class="phase-details" id="finishDetails">
                         <div class="phase-detail-item">
                             <span class="phase-detail-label">Temperature Range</span>
@@ -463,10 +462,10 @@
                         </div>
                     </div>
 
-                    <div class="result-item" style="margin-top: var(--space-12);">
+                    <div class="result-item">
                          <span class="result-label">Estimated Total Time</span>
                          <span class="result-value" id="totalTime">--</span>
-                     </div>
+                      </div>
                     </div>
                     <div id="warningBox"></div>
                     </div>
