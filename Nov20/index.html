@@ -91,6 +91,22 @@
             margin-bottom: var(--space-20);
         }
 
+        .row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-20);
+            margin-bottom: var(--space-20);
+        }
+
+        @media (min-width: 768px) {
+            .row.two-col {
+                grid-template-columns: 1fr 1fr;
+            }
+            .row.two-col-uneven {
+                grid-template-columns: 1fr 1.5fr;
+            }
+        }
+
         .form-group {
             margin-bottom: var(--space-16);
         }
@@ -185,6 +201,11 @@
         .result-value {
             font-weight: 600;
             color: var(--color-text);
+            text-align: right;
+        }
+
+        #airDryPhase {
+            font-size: 13px;
         }
 
         .warning {
@@ -307,37 +328,38 @@
     <div class="container">
         <h1>Hair Dryer Assistant</h1>
         
-        <div class="card">
-            <div class="form-group">
-                <label for="location">Location (City or Coordinates)</label>
-                <input type="text" id="location" placeholder="Barcelona or 41.3874,2.1686" value="Barcelona">
-                <div class="error" id="locationError"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="hairType">Hair Thickness</label>
-                <select id="hairType">
-                    <option value="fine">Fine</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="thick">Thick</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="porosity">Hair Porosity</label>
-                <select id="porosity">
-                    <option value="low">Low</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="high">High</option>
-                </select>
-            </div>
-
-            <button id="generateBtn">Generate Recommendations</button>
-        </div>
-
-        <div class="results" id="results">
+        <!-- Row 1: Input + Environment Conditions -->
+        <div class="row two-col">
             <div class="card">
-                <div class="result-section">
+                <div class="form-group">
+                    <label for="location">Location (City or Coordinates)</label>
+                    <input type="text" id="location" placeholder="Barcelona or 41.3874,2.1686" value="Barcelona">
+                    <div class="error" id="locationError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hairType">Hair Thickness</label>
+                    <select id="hairType">
+                        <option value="fine">Fine</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="thick">Thick</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="porosity">Hair Porosity</label>
+                    <select id="porosity">
+                        <option value="low">Low</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+
+                <button id="generateBtn">Generate Recommendations</button>
+            </div>
+
+            <div class="card results" id="environmentCard" style="display: none;">
+                <div class="result-section in-card">
                     <h2>Environment Conditions</h2>
                     <div class="result-item">
                         <span class="result-label">Temperature</span>
@@ -356,7 +378,13 @@
                         <span class="result-value" id="envType">--</span>
                     </div>
                 </div>
+                <div id="infoBox"></div>
+            </div>
+        </div>
 
+        <div class="results" id="results">
+            <!-- Row 2: Drying Protocol -->
+            <div class="card">
                 <div class="result-section">
                     <h2>Drying Protocol</h2>
                     <div class="result-item" id="towelDryPhaseItem">
@@ -436,44 +464,49 @@
                     </div>
 
                     <div class="result-item" style="margin-top: var(--space-12);">
-                        <span class="result-label">Estimated Total Time</span>
-                        <span class="result-value" id="totalTime">--</span>
+                         <span class="result-label">Estimated Total Time</span>
+                         <span class="result-value" id="totalTime">--</span>
+                     </div>
+                    </div>
+                    <div id="warningBox"></div>
+                    </div>
+
+            <!-- Row 3: Energy Cost + Cost Analysis -->
+            <div class="row two-col-uneven">
+                <div class="card">
+                    <div class="result-section in-card">
+                        <h2>Energy Cost</h2>
+                        <div class="result-item">
+                            <span class="result-label">Electricity Price</span>
+                            <span class="result-value" id="electricityRate">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Hair Dryer Power</span>
+                            <span class="result-value" id="powerConsumption">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Energy Used</span>
+                            <span class="result-value" id="energyUsed">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Estimated Cost</span>
+                            <span class="result-value" id="totalCost">--</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: var(--space-12);">
+                            <span id="priceSource">Auto-detected for your location</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="result-section">
-                    <h2>Energy Cost</h2>
-                    <div class="result-item">
-                        <span class="result-label">Electricity Price</span>
-                        <span class="result-value" id="electricityRate">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Hair Dryer Power Consumption</span>
-                        <span class="result-value" id="powerConsumption">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Total Energy Used</span>
-                        <span class="result-value" id="energyUsed">--</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Estimated Cost</span>
-                        <span class="result-value" id="totalCost">--</span>
-                    </div>
-                    <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: var(--space-12);">
-                        <span id="priceSource">Auto-detected for your location</span>
+                <div class="card">
+                    <div class="result-section in-card">
+                        <h2>Cost Analysis by Priority & Towel-Dry Level</h2>
+                        <div class="chart-container">
+                            <canvas id="costChart"></canvas>
+                        </div>
+                        <div id="recommendationBadge"></div>
                     </div>
                 </div>
-
-                <div class="result-section">
-                    <h2>Cost Analysis by Priority & Towel-Dry Level</h2>
-                    <div class="chart-container">
-                        <canvas id="costChart"></canvas>
-                    </div>
-                    <div id="recommendationBadge"></div>
-                </div>
-
-                <div id="warningBox"></div>
-                <div id="infoBox"></div>
             </div>
         </div>
     </div>
@@ -517,6 +550,7 @@
                 
                 displayResults(weather, allResults, costsData, priorities, towelDryLevels, lowestCostIndex, recommendedRec, recommendedCost);
                 results.classList.add('visible');
+                document.getElementById('environmentCard').style.display = 'block';
             } catch (error) {
                 locationError.textContent = error.message;
             } finally {
