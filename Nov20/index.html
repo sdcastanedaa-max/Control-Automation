@@ -670,7 +670,9 @@
             };
 
             const powerWatts = powerMap[recommendations.heatSetting] || 1200;
-            const totalTimeHours = recommendations.totalTime / 60;
+            // Only count blow-dry time, not air-dry time (which uses 0 watts)
+            const blowDryTime = recommendations.bulkTime + recommendations.finishTime;
+            const totalTimeHours = blowDryTime / 60;
             const energyKwh = (powerWatts / 1000) * totalTimeHours;
             const cost = energyKwh * electricityPrice;
 
@@ -1114,8 +1116,27 @@
             element.classList.toggle('visible');
         }
 
+        // Load location from URL hash and save changes
+        function loadLocationFromUrl() {
+            const hash = window.location.hash.slice(1); // Remove #
+            if (hash) {
+                locationInput.value = decodeURIComponent(hash);
+            }
+        }
+
+        function saveLocationToUrl() {
+            const location = locationInput.value.trim();
+            if (location) {
+                window.location.hash = encodeURIComponent(location);
+            }
+        }
+
+        // Save location when typing
+        locationInput.addEventListener('change', saveLocationToUrl);
+
         // Auto-load on page load with default location
         window.addEventListener('load', () => {
+            loadLocationFromUrl();
             if (locationInput.value) {
                 generateBtn.click();
             }
