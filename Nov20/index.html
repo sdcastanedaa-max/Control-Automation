@@ -786,30 +786,35 @@
             const dp = (1 - rh / 100) * (1 + 0.02 * (temp - 20));
 
             // Base heat index from hair type
-            let heatIndex = { fine: 0, medium: 1, thick: 2 }[hairType];
+             let heatIndex = { fine: 0, medium: 1, thick: 2 }[hairType];
 
-            // Adjust for porosity
-            if (porosity === 'low') heatIndex += 1;
-            if (porosity === 'high') heatIndex -= 1;
+             // Adjust for porosity
+             if (porosity === 'low') heatIndex += 1;
+             if (porosity === 'high') heatIndex -= 1;
 
-            // Environment adjustment
-            if (dp < 0.6) heatIndex += 1;
-            if (dp > 1.2) heatIndex -= 1;
+             // Environment adjustment
+             if (dp < 0.6) heatIndex += 1;
+             if (dp > 1.2) heatIndex -= 1;
 
-            // Time priority adjustment
-            heatIndex += Math.round(0.5 * (timePriority - 0.5));
+             // Time priority adjustment
+             heatIndex += Math.round(0.5 * (timePriority - 0.5));
 
-            // Clamp to valid range
-            heatIndex = Math.max(0, Math.min(2, heatIndex));
+             // Clamp to valid range
+             heatIndex = Math.max(0, Math.min(2, heatIndex));
 
-            // Map to settings
-            const heatSettings = [
-                { name: 'Low', temp: '50-60°C', distance: '18-20 cm' },
-                { name: 'Medium', temp: '70-80°C', distance: '15-18 cm' },
-                { name: 'High', temp: '90-100°C', distance: '18-20 cm' }
-            ];
+             // Map to settings
+             const heatSettings = [
+                 { name: 'Low', temp: '50-60°C', distance: '18-20 cm' },
+                 { name: 'Medium', temp: '70-80°C', distance: '15-18 cm' },
+                 { name: 'High', temp: '90-100°C', distance: '18-20 cm' }
+             ];
 
-            const currentHeat = heatSettings[heatIndex];
+             // Bulk phase uses calculated heat index
+             const bulkHeat = heatSettings[heatIndex];
+             
+             // Finish phase uses one level lower for gentler drying
+             const finishHeatIndex = Math.max(0, heatIndex - 1);
+             const finishHeat = heatSettings[finishHeatIndex];
 
             // Airflow recommendation
             const airflow = (hairType === 'fine' && timePriority < 0.5) ? 'Medium' : 'High';
@@ -876,9 +881,11 @@
                 dp,
                 envType,
                 heatIndex,
-                heatSetting: currentHeat.name,
-                tempRange: currentHeat.temp,
-                distance: currentHeat.distance,
+                heatSetting: bulkHeat.name,
+                tempRange: bulkHeat.temp,
+                distance: bulkHeat.distance,
+                finishTempRange: finishHeat.temp,
+                finishDistance: finishHeat.distance,
                 airflow,
                 bulkTime: Math.round(modifiedBulkTime * 10) / 10,
                 finishTime: Math.round(modifiedFinishTime * 10) / 10,
@@ -888,7 +895,7 @@
                 hybridDryingRecommended,
                 airDryMinutes: Math.round(airDryMinutes * 10) / 10
             };
-        }
+            }
 
         function displayResults(weather, allResults, costsData, priorities, towelDryLevels, lowestCostIndex, recommendedRec, recommendedCost) {
             // Store data globally for click handler
@@ -939,8 +946,8 @@
             document.getElementById('bulkDistance').textContent = recommendedRec.distance;
             
             document.getElementById('finishPhase').textContent = `${recommendedRec.finishTime} min`;
-            document.getElementById('finishTempRange').textContent = recommendedRec.tempRange;
-            document.getElementById('finishDistance').textContent = recommendedRec.distance;
+            document.getElementById('finishTempRange').textContent = recommendedRec.finishTempRange;
+            document.getElementById('finishDistance').textContent = recommendedRec.finishDistance;
             
             document.getElementById('totalTime').textContent = `${recommendedRec.totalTime} minutes`;
 
@@ -1126,8 +1133,8 @@
             document.getElementById('bulkDistance').textContent = selectedRec.distance;
             
             document.getElementById('finishPhase').textContent = `${selectedRec.finishTime} min`;
-            document.getElementById('finishTempRange').textContent = selectedRec.tempRange;
-            document.getElementById('finishDistance').textContent = selectedRec.distance;
+            document.getElementById('finishTempRange').textContent = selectedRec.finishTempRange;
+            document.getElementById('finishDistance').textContent = selectedRec.finishDistance;
             
             document.getElementById('totalTime').textContent = `${selectedRec.totalTime} minutes`;
 
