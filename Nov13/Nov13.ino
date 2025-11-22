@@ -1,18 +1,22 @@
-const int relayPin = D3; // Pin connected to the relay or LED
+const int relayPin = D5;
+const int ledPin = D2;
 
 void setup() {
-    Serial.begin(115200); // Start serial communication at 115200 baud
-    pinMode(relayPin, OUTPUT); // Set the relay pin as an output
+    Serial.begin(115200);
+    pinMode(relayPin, OUTPUT);
+    pinMode(ledPin, OUTPUT);
 }
 
 void loop() {
-    if (Serial.available() > 0) { // Check if data is available to read
-        char command = Serial.read(); // Read the incoming command
+    if (Serial.available() > 0) {
+        char command = Serial.read();
         if (command == 'H') {
-            digitalWrite(relayPin, HIGH); // Turn on the relay or LED
+            digitalWrite(relayPin, HIGH);
+            digitalWrite(ledPin, HIGH);
             Serial.println("Relay/LED ON");
         } else if (command == 'L') {
-            digitalWrite(relayPin, LOW); // Turn off the relay or LED
+            digitalWrite(relayPin, LOW);
+            digitalWrite(ledPin, LOW);
             Serial.println("Relay/LED OFF");
         }
     }
