@@ -84,16 +84,11 @@ float read_voltage() {
 }
 
 float read_temperature() {
-  config_i2c_temp();
-  delay(10);
-  float voltage = read_voltage();
-  Serial.print("Raw voltage: ");
-  Serial.print(voltage, 4);
-  Serial.print("V | ");
-  float temperature = voltage * 100.0; // LM35: 10mV/°C
-  config_i2c_current();
-  return temperature;
-}
+   int rawValue = analogRead(TEMP_SENSOR_PIN);
+   float voltage = rawValue * (3.3 / 4095.0); // ESP32 ADC: 0-4095 for 0-3.3V
+   float temperature = voltage * 100.0; // LM35: 10mV/°C
+   return temperature;
+ }
 
 // ============================================================================
 // SETUP FUNCTION
@@ -126,12 +121,8 @@ void loop() {
       digitalWrite(RELAY_PIN, LOW);
       digitalWrite(LED_PIN, LOW);
       Serial.println("Relay/LED OFF");
-    } else if (command == 'T') {
-      float temperature = read_temperature();
-      Serial.print("Temperature: ");
-      Serial.println(temperature, 2);
     }
-  }
+    }
 
   // Current sensor measurement
   currentTime = micros();
@@ -159,11 +150,15 @@ void loop() {
   }
   
   if (averageSampleCounter >= AVERAGE_SAMPLE_COUNT) {
-    double filteredCurrentRms = accumulatedCurrent / ((double)averageSampleCounter);
-    averageSampleCounter = 0;
-    accumulatedCurrent = 0;
-    
-    Serial.print("Current: ");
-    Serial.println(filteredCurrentRms, 5);
-  }
+     double filteredCurrentRms = accumulatedCurrent / ((double)averageSampleCounter);
+     averageSampleCounter = 0;
+     accumulatedCurrent = 0;
+     
+     float temperature = read_temperature();
+     Serial.print("Temperature: ");
+     Serial.print(temperature, 2);
+     Serial.print(" | ");
+     Serial.print("Current: ");
+     Serial.println(filteredCurrentRms, 5);
+   }
 }
