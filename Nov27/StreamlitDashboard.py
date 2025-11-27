@@ -323,7 +323,7 @@ if "results" in st.session_state:
         # Towel-dry phase - always visible
         col_towel_label, col_towel_btn = st.columns([0.9, 0.1])
         with col_towel_label:
-            st.markdown(f"""<div class="result-item">
+            st.markdown(f"""<div class="result-item phase-section">
                 <span class="result-label">Towel-Dry Phase</span>
                 <span class="result-value">~{towel_dry_duration} min</span>
             </div>""", unsafe_allow_html=True)
@@ -344,36 +344,34 @@ if "results" in st.session_state:
             </div>
             """, unsafe_allow_html=True)
 
-        # Air-dry phase - always visible if recommended
-        if selected_result['hybrid_drying_recommended']:
-            col_air_label, col_air_btn = st.columns([0.9, 0.1])
-            with col_air_label:
-                st.markdown(f"""<div class="result-item">
+        # Air-dry phase - always visible with button
+        col_air_label, col_air_btn = st.columns([0.9, 0.1])
+        with col_air_label:
+            if selected_result['hybrid_drying_recommended']:
+                st.markdown(f"""<div class="result-item phase-section">
                     <span class="result-label">Air Dry Phase</span>
                     <span class="result-value">{selected_result['air_dry_minutes']} min</span>
                 </div>""", unsafe_allow_html=True)
-            with col_air_btn:
-                if st.button("ⓘ", key="air_dry_info_btn", help="Show air-dry details"):
-                    st.session_state.air_dry_info = not st.session_state.get("air_dry_info", False)
+            else:
+                st.markdown(f"""<div class="result-item phase-section disabled">
+                    <span class="result-label disabled">Air Dry Phase: Not recommended</span>
+                </div>""", unsafe_allow_html=True)
+        with col_air_btn:
+            if st.button("ⓘ", key="air_dry_info_btn", help="Show air-dry details"):
+                st.session_state.air_dry_info = not st.session_state.get("air_dry_info", False)
 
-            if st.session_state.get("air_dry_info", False):
-                st.markdown("""
-                <div class="phase-details visible">
-                <strong>Temperature:</strong> Room temperature<br>
-                <strong>Benefit:</strong> No heat required, reduces heat damage
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="result-item disabled">
-                <span class="result-label disabled">Air Dry Phase: Not recommended</span>
+        if st.session_state.get("air_dry_info", False):
+            st.markdown("""
+            <div class="phase-details visible">
+            <strong>Temperature:</strong> Room temperature<br>
+            <strong>Benefit:</strong> No heat required, reduces heat damage
             </div>
             """, unsafe_allow_html=True)
 
         # Bulk phase - always visible
         col_bulk_label, col_bulk_btn = st.columns([0.9, 0.1])
         with col_bulk_label:
-            st.markdown(f"""<div class="result-item">
+            st.markdown(f"""<div class="result-item phase-section">
                 <span class="result-label">Bulk Phase ({selected_result['heat_setting']} heat)</span>
                 <span class="result-value">{selected_result['bulk_time']} min</span>
             </div>""", unsafe_allow_html=True)
@@ -393,7 +391,7 @@ if "results" in st.session_state:
         # Finish phase - always visible
         col_finish_label, col_finish_btn = st.columns([0.9, 0.1])
         with col_finish_label:
-            st.markdown(f"""<div class="result-item">
+            st.markdown(f"""<div class="result-item phase-section">
                 <span class="result-label">Finish Phase (Low/Medium heat)</span>
                 <span class="result-value">{selected_result['finish_time']} min</span>
             </div>""", unsafe_allow_html=True)

@@ -254,6 +254,26 @@ button:disabled {
     padding-bottom: 0;
 }
 
+/* Phase section borders */
+.phase-section {
+    border-bottom: 1px solid var(--color-divider) !important;
+    margin-bottom: var(--space-8) !important;
+    padding-bottom: var(--space-6) !important;
+}
+
+/* Override Streamlit's stMarkdown for phase sections */
+.stMarkdown .phase-section {
+    border-bottom: 1px solid var(--color-divider) !important;
+    margin-bottom: var(--space-8) !important;
+    padding-bottom: var(--space-6) !important;
+}
+
+/* Allow phase labels to wrap */
+.phase-section .result-label {
+    white-space: normal !important;
+    word-break: break-word;
+}
+
 .result-label {
     font-weight: 500;
     color: var(--color-text-secondary);
