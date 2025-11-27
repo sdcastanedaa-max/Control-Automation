@@ -19,6 +19,7 @@
     --color-border: rgba(var(--color-brown-600-rgb), 0.2);
     --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
     --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --space-2: 2px;
     --space-4: 4px;
     --space-6: 6px;
     --space-8: 8px;
@@ -59,10 +60,10 @@
 body {
     font-family: var(--font-family-base);
     margin: 0;
-    padding: var(--space-12);
+    padding: var(--space-6);
     background: var(--color-background);
     color: var(--color-text);
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .container {
@@ -77,16 +78,18 @@ body {
 }
 
 h1 {
-    font-size: 28px;
+    font-size: 12px;
     font-weight: 700;
-    margin: 0 0 var(--space-16) 0;
+    margin: 0 0 var(--space-4) 0;
     color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 h2 {
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 600;
-    margin: 0 0 var(--space-8) 0;
+    margin: 0 0 var(--space-4) 0;
     color: var(--color-text);
 }
 
@@ -94,18 +97,18 @@ h2 {
     background: var(--color-surface);
     border: 1px solid var(--color-card-border);
     border-radius: var(--radius-lg);
-    padding: var(--space-16);
+    padding: var(--space-8);
 }
 
 .card:not(.row *) {
-    margin-bottom: var(--space-12);
+    margin-bottom: var(--space-6);
 }
 
 .row {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-12);
-    margin-bottom: var(--space-12);
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
 }
 
 @media (min-width: 768px) {
@@ -118,7 +121,7 @@ h2 {
 }
 
 .form-group {
-    margin-bottom: var(--space-12);
+    margin-bottom: var(--space-6);
 }
 
 label {
@@ -126,19 +129,19 @@ label {
     align-items: center;
     white-space: nowrap;
     font-weight: 500;
-    margin-bottom: var(--space-6);
-    font-size: 13px;
+    margin-bottom: var(--space-2);
+    font-size: 12px;
     color: var(--color-text-secondary);
 }
 
 input, select {
     width: 100%;
-    padding: var(--space-8) var(--space-12);
+    padding: var(--space-6) var(--space-8);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-base);
     background: var(--color-surface);
     color: var(--color-text);
-    font-size: 13px;
+    font-size: 12px;
     transition: all 0.2s;
 }
 
@@ -149,12 +152,12 @@ input:focus, select:focus {
 
 button {
     width: 100%;
-    padding: var(--space-12) var(--space-20);
+    padding: var(--space-6) var(--space-12);
     background: var(--color-primary);
     color: white;
     border: none;
     border-radius: var(--radius-base);
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s;
@@ -182,13 +185,13 @@ button:disabled {
 }
 
 .result-section {
-    margin-bottom: var(--space-12);
+    margin-bottom: var(--space-4);
 }
 
 .result-section h2 {
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 700;
-    margin: 0 0 var(--space-8) 0;
+    margin: 0 0 var(--space-4) 0;
     color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -197,7 +200,7 @@ button:disabled {
 .result-item {
     display: flex;
     justify-content: space-between;
-    padding: var(--space-8) 0;
+    padding: var(--space-4) 0;
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -221,13 +224,14 @@ button:disabled {
 }
 
 .warning {
-    background: rgba(230, 129, 97, 0.08);
-    border: 1px solid rgba(230, 129, 97, 0.25);
+    background: rgba(249, 115, 22, 0.08);
+    border: 1px solid rgba(249, 115, 22, 0.25);
     border-radius: var(--radius-base);
-    padding: var(--space-12);
-    margin-top: var(--space-8);
-    font-size: 13px;
-    line-height: 1.5;
+    padding: var(--space-6);
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-4);
+    font-size: 12px;
+    line-height: 1.4;
     color: var(--color-text);
 }
 
@@ -235,17 +239,18 @@ button:disabled {
     background: rgba(33, 128, 141, 0.08);
     border: 1px solid rgba(33, 128, 141, 0.25);
     border-radius: var(--radius-base);
-    padding: var(--space-12);
-    margin-top: var(--space-8);
-    font-size: 13px;
-    line-height: 1.5;
+    padding: var(--space-6);
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-4);
+    font-size: 12px;
+    line-height: 1.4;
     color: var(--color-text);
 }
 
 .error {
-    color: #c0152f;
+    color: #f97316;
     margin-top: var(--space-8);
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .loading {
@@ -255,8 +260,8 @@ button:disabled {
 
 .chart-container {
     position: relative;
-    height: 350px;
-    margin-bottom: var(--space-12);
+    height: 280px;
+    margin-bottom: var(--space-4);
     border-radius: var(--radius-base);
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -267,11 +272,12 @@ button:disabled {
     background: rgba(33, 128, 141, 0.15);
     border: 1px solid var(--color-primary);
     border-radius: var(--radius-base);
-    padding: var(--space-6) var(--space-12);
+    padding: var(--space-4) var(--space-8);
     font-size: 11px;
     font-weight: 700;
     color: var(--color-primary);
-    margin-top: var(--space-8);
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-4);
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
@@ -297,10 +303,10 @@ button:disabled {
 
 .phase-details {
     display: none;
-    padding: var(--space-12);
+    padding: var(--space-6);
     background: rgba(33, 128, 141, 0.04);
     border-radius: var(--radius-base);
-    margin-top: var(--space-6);
+    margin-top: var(--space-2);
     font-size: 12px;
     border: 1px solid rgba(33, 128, 141, 0.1);
 }
@@ -312,7 +318,7 @@ button:disabled {
 .phase-detail-item {
     display: flex;
     justify-content: space-between;
-    padding: var(--space-6) 0;
+    padding: var(--space-2) 0;
 }
 
 .phase-detail-item:first-child {
@@ -339,9 +345,9 @@ button:disabled {
 .selection-controls {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-12);
-    margin-bottom: var(--space-12);
-    padding: var(--space-12);
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+    padding: var(--space-6);
     background: rgba(33, 128, 141, 0.06);
     border: 1px solid rgba(33, 128, 141, 0.15);
     border-radius: var(--radius-base);
@@ -356,7 +362,67 @@ button:disabled {
 .selection-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
+    gap: var(--space-6);
+}
+
+/* Inline form group - label and input side by side */
+.stColumns > div {
+    min-width: 0;
+}
+
+.form-group.inline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    min-width: 0;
+}
+
+.form-group.inline label {
+    flex-shrink: 0;
+    margin-bottom: 0;
+    white-space: nowrap;
+    font-size: 12px;
+    padding-right: var(--space-2);
+}
+
+.form-group.inline input,
+.form-group.inline select {
+    flex: 1;
+    min-width: 100px;
+    width: auto;
+}
+
+.form-group.inline .info-button {
+    margin: 0;
+    flex-shrink: 0;
+    padding: 2px 4px;
+    font-size: 12px;
+    min-width: 24px;
+}
+
+@media (max-width: 480px) {
+    .form-group.inline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-group.inline label {
+        width: 100%;
+        padding-right: 0;
+        margin-bottom: var(--space-4);
+    }
+    
+    .form-group.inline input,
+    .form-group.inline select {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .form-group.inline .info-button {
+        margin-left: var(--space-4);
+        align-self: flex-start;
+    }
 }
 
 .selection-group label {
@@ -373,14 +439,14 @@ button:disabled {
     border-radius: var(--radius-base);
     background: var(--color-surface);
     color: var(--color-text);
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
 }
 
 @media (prefers-color-scheme: dark) {
     .warning {
-        background: rgba(230, 129, 97, 0.12);
-        border-color: rgba(230, 129, 97, 0.3);
+        background: rgba(249, 115, 22, 0.12);
+        border-color: rgba(249, 115, 22, 0.3);
     }
     .info {
         background: rgba(50, 184, 198, 0.12);
@@ -391,12 +457,12 @@ button:disabled {
 /* Streamlit-specific overrides */
 .stButton > button {
     width: 100%;
-    padding: 10px 16px;
+    padding: 8px 12px;
     background: var(--color-primary);
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     box-shadow: 0 2px 6px rgba(33, 128, 141, 0.2);
     transition: all 0.2s;
@@ -408,7 +474,7 @@ button:disabled {
 }
 
 .stSelectbox {
-    margin-bottom: var(--space-12);
+    margin-bottom: var(--space-6);
 }
 
 .stExpander {
@@ -418,17 +484,19 @@ button:disabled {
 }
 
 .stExpander > div:first-child > button {
-    padding: var(--space-8) var(--space-12);
-    font-size: 13px;
+    padding: var(--space-4) var(--space-8);
+    font-size: 12px;
     font-weight: 600;
 }
 
 /* Title styling */
 .stTitle > h1 {
-    font-size: 28px;
+    font-size: 12px;
     font-weight: 700;
-    margin-bottom: var(--space-16);
+    margin-bottom: var(--space-4);
     color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Input styling */
@@ -462,17 +530,76 @@ button:disabled {
 
 /* Plotly chart styling */
 .stPlotlyChart {
-    margin-bottom: var(--space-20);
+    margin-bottom: var(--space-8);
 }
 
 /* Block container padding */
 .main .block-container {
-    padding-left: var(--space-12);
-    padding-right: var(--space-12);
-    padding-top: var(--space-8);
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+    padding-top: var(--space-2);
 }
 
 /* Markdown styling for cards */
 .stMarkdown {
     color: inherit;
+}
+
+/* Override all Streamlit heading styles */
+h1, h2, h3, h4, h5, h6 {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+h1 {
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Streamlit markdown headings */
+.stMarkdown h1, 
+.stMarkdown h2, 
+.stMarkdown h3, 
+.stMarkdown h4, 
+.stMarkdown h5, 
+.stMarkdown h6 {
+    font-size: 12px !important;
+}
+
+.stMarkdown h1 {
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.stMarkdown h2 {
+    font-weight: 600 !important;
+}
+
+/* Override Streamlit cache classes */
+[class*="st-emotion-cache"] h1,
+[class*="st-emotion-cache"] h2,
+[class*="st-emotion-cache"] h3,
+[class*="st-emotion-cache"] h4,
+[class*="st-emotion-cache"] h5,
+[class*="st-emotion-cache"] h6 {
+    font-size: 12px !important;
+}
+
+/* Streamlit title elements */
+.stTitle h1,
+.stHeader h1,
+.stSubheader h2 {
+    font-size: 12px !important;
+}
+
+/* All text should be 12px - universal override */
+* {
+    font-size: 12px !important;
+}
+
+/* Preserve specific structural styles but not font size */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700 !important;
 }

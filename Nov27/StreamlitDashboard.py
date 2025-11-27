@@ -159,29 +159,54 @@ with col1:
     with st.container(border=True):
         st.markdown('### ⚙️ Hair Settings')
         
-        location = st.text_input("📍 Location (City or Coordinates)", value="Barcelona", placeholder="Barcelona or 41.3874,2.1686")
+        # Location input - inline with label
+        col_loc_label, col_loc_input = st.columns([0.3, 0.7])
+        with col_loc_label:
+            st.markdown('<label>📍 Location</label>', unsafe_allow_html=True)
+        with col_loc_input:
+            location = st.text_input("Location (City or Coordinates)", value="Barcelona", placeholder="Barcelona or 41.3874,2.1686", label_visibility="collapsed")
         
-        hair_type = st.selectbox("Hair Thickness", ["Fine", "Medium", "Thick"], index=1)
-        hair_type = hair_type.lower()
+        # Hair Thickness - label with info button inline
+        col_thick_label, col_thick_btn, col_thick_input = st.columns([0.22, 0.08, 0.7])
+        with col_thick_label:
+            st.markdown('<label>Hair Thickness</label>', unsafe_allow_html=True)
+        with col_thick_btn:
+            if st.button("ⓘ", key="hair_thickness_btn"):
+                st.session_state.hair_thickness_info = not st.session_state.get("hair_thickness_info", False)
+        with col_thick_input:
+            hair_type = st.selectbox("Hair Thickness", ["Fine", "Medium", "Thick"], index=1, label_visibility="collapsed")
+            hair_type = hair_type.lower()
         
-        with st.expander("ℹ️ Hair Thickness Help"):
+        if st.session_state.get("hair_thickness_info", False):
             st.markdown("""
-            **Feel an individual strand:**
-            - **Fine** = hard to see and feel
-            - **Medium** = visible but not coarse
-            - **Thick** = strong and sturdy
-            """)
+            <div class="info">
+            <strong>Feel an individual strand:</strong><br>
+            • <strong>Fine</strong> = hard to see and feel<br>
+            • <strong>Medium</strong> = visible but not coarse<br>
+            • <strong>Thick</strong> = strong and sturdy
+            </div>
+            """, unsafe_allow_html=True)
         
-        porosity = st.selectbox("Hair Porosity", ["Low", "Normal", "High"], index=1)
-        porosity = porosity.lower() if porosity != "Normal" else "normal"
+        # Hair Porosity - label with info button inline
+        col_poro_label, col_poro_btn, col_poro_input = st.columns([0.22, 0.08, 0.7])
+        with col_poro_label:
+            st.markdown('<label>Hair Porosity</label>', unsafe_allow_html=True)
+        with col_poro_btn:
+            if st.button("ⓘ", key="hair_porosity_btn"):
+                st.session_state.hair_porosity_info = not st.session_state.get("hair_porosity_info", False)
+        with col_poro_input:
+            porosity = st.selectbox("Hair Porosity", ["Low", "Normal", "High"], index=1, label_visibility="collapsed")
+            porosity = porosity.lower() if porosity != "Normal" else "normal"
         
-        with st.expander("ℹ️ Hair Porosity Help"):
+        if st.session_state.get("hair_porosity_info", False):
             st.markdown("""
-            **Drop a strand in water—wait 3–5 minutes:**
-            - **Low** = floats, repels water, dries slow
-            - **Normal** = sinks slowly
-            - **High** = sinks fast, dries fast, may frizz
-            """)
+            <div class="info">
+            <strong>Drop a strand in water—wait 3–5 minutes:</strong><br>
+            • <strong>Low</strong> = floats, repels water, dries slow<br>
+            • <strong>Normal</strong> = sinks slowly<br>
+            • <strong>High</strong> = sinks fast, dries fast, may frizz
+            </div>
+            """, unsafe_allow_html=True)
         
         generate_btn = st.button("Generate Recommendations", use_container_width=True)
 
@@ -309,39 +334,48 @@ if "results" in st.session_state:
             reduction = int((1 - (selected_result["bulk_time"] + selected_result["finish_time"]) / (selected_result["bulk_time"] + selected_result["finish_time"] + towel_dry_duration)) * 100) if (selected_result["bulk_time"] + selected_result["finish_time"] > 0) else 0
             
             # Towel-dry phase - always visible
-            st.markdown(f"""
-            <div class="result-item">
-                <span class="result-label">Towel-Dry Phase</span>
-                <span class="result-value">~{towel_dry_duration} min</span>
-            </div>
-            """, unsafe_allow_html=True)
+            col_towel_label, col_towel_btn = st.columns([0.9, 0.1])
+            with col_towel_label:
+                st.markdown(f"""<div class="result-item">
+                    <span class="result-label">Towel-Dry Phase</span>
+                    <span class="result-value">~{towel_dry_duration} min</span>
+                </div>""", unsafe_allow_html=True)
+            with col_towel_btn:
+                if st.button("ⓘ", key="towel_dry_info_btn", help="Show towel-dry details"):
+                    st.session_state.towel_dry_info = not st.session_state.get("towel_dry_info", False)
             
-            with st.expander("ℹ️ Towel-Dry Details"):
+            if st.session_state.get("towel_dry_info", False):
                 st.markdown(f"""
-                - **Remaining Wetness:** {results["towel_levels"][selected_towel_idx]}%
-                - **Reduces blow-dry time by:** ~{reduction}%
-                
-                **Visual Progress Guide:**
-                - 🚫 Dripping or pooling: Too wet (0-30%)
-                - 💧 Towel heavy, hair saturated: ~40%
-                - 🤏 Towel less damp, drips stop: ~60-70%
-                - ✓ Hair moist, lifts easily, ready to dry: ~80%
-                """)
+                <div class="phase-details visible">
+                <strong>Remaining Wetness:</strong> {results["towel_levels"][selected_towel_idx]}%<br>
+                <strong>Reduces blow-dry time by:</strong> ~{reduction}%<br><br>
+                <strong>Visual Progress Guide:</strong><br>
+                🚫 Dripping or pooling: Too wet (0-30%)<br>
+                💧 Towel heavy, hair saturated: ~40%<br>
+                🤏 Towel less damp, drips stop: ~60-70%<br>
+                ✓ Hair moist, lifts easily, ready to dry: ~80%
+                </div>
+                """, unsafe_allow_html=True)
             
             # Air-dry phase - always visible if recommended
             if selected_result['hybrid_drying_recommended']:
-                st.markdown(f"""
-                <div class="result-item">
-                    <span class="result-label">Air Dry Phase</span>
-                    <span class="result-value">{selected_result['air_dry_minutes']} min</span>
-                </div>
-                """, unsafe_allow_html=True)
+                col_air_label, col_air_btn = st.columns([0.9, 0.1])
+                with col_air_label:
+                    st.markdown(f"""<div class="result-item">
+                        <span class="result-label">Air Dry Phase</span>
+                        <span class="result-value">{selected_result['air_dry_minutes']} min</span>
+                    </div>""", unsafe_allow_html=True)
+                with col_air_btn:
+                    if st.button("ⓘ", key="air_dry_info_btn", help="Show air-dry details"):
+                        st.session_state.air_dry_info = not st.session_state.get("air_dry_info", False)
                 
-                with st.expander("ℹ️ Air Dry Details"):
-                    st.markdown(f"""
-                    - **Temperature:** Room temperature
-                    - **Benefit:** No heat required, reduces heat damage
-                    """)
+                if st.session_state.get("air_dry_info", False):
+                    st.markdown("""
+                    <div class="phase-details visible">
+                    <strong>Temperature:</strong> Room temperature<br>
+                    <strong>Benefit:</strong> No heat required, reduces heat damage
+                    </div>
+                    """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class="result-item disabled">
@@ -350,34 +384,44 @@ if "results" in st.session_state:
                 """, unsafe_allow_html=True)
             
             # Bulk phase - always visible
-            st.markdown(f"""
-            <div class="result-item">
-                <span class="result-label">Bulk Phase ({selected_result['heat_setting']} heat)</span>
-                <span class="result-value">{selected_result['bulk_time']} min</span>
-            </div>
-            """, unsafe_allow_html=True)
+            col_bulk_label, col_bulk_btn = st.columns([0.9, 0.1])
+            with col_bulk_label:
+                st.markdown(f"""<div class="result-item">
+                    <span class="result-label">Bulk Phase ({selected_result['heat_setting']} heat)</span>
+                    <span class="result-value">{selected_result['bulk_time']} min</span>
+                </div>""", unsafe_allow_html=True)
+            with col_bulk_btn:
+                if st.button("ⓘ", key="bulk_phase_info_btn", help="Show bulk phase details"):
+                    st.session_state.bulk_phase_info = not st.session_state.get("bulk_phase_info", False)
             
-            with st.expander("ℹ️ Bulk Phase Details"):
+            if st.session_state.get("bulk_phase_info", False):
                 st.markdown(f"""
-                - **Temperature:** {selected_result['temp_range']}
-                - **Distance:** {selected_result['distance']}
-                - **Target:** ~90% dry
-                """)
+                <div class="phase-details visible">
+                <strong>Temperature:</strong> {selected_result['temp_range']}<br>
+                <strong>Distance:</strong> {selected_result['distance']}<br>
+                <strong>Target:</strong> ~90% dry
+                </div>
+                """, unsafe_allow_html=True)
             
             # Finish phase - always visible
-            st.markdown(f"""
-            <div class="result-item">
-                <span class="result-label">Finish Phase (Low/Medium heat)</span>
-                <span class="result-value">{selected_result['finish_time']} min</span>
-            </div>
-            """, unsafe_allow_html=True)
+            col_finish_label, col_finish_btn = st.columns([0.9, 0.1])
+            with col_finish_label:
+                st.markdown(f"""<div class="result-item">
+                    <span class="result-label">Finish Phase (Low/Medium heat)</span>
+                    <span class="result-value">{selected_result['finish_time']} min</span>
+                </div>""", unsafe_allow_html=True)
+            with col_finish_btn:
+                if st.button("ⓘ", key="finish_phase_info_btn", help="Show finish phase details"):
+                    st.session_state.finish_phase_info = not st.session_state.get("finish_phase_info", False)
             
-            with st.expander("ℹ️ Finish Phase Details"):
+            if st.session_state.get("finish_phase_info", False):
                 st.markdown(f"""
-                - **Temperature:** {selected_result['finish_temp_range']}
-                - **Distance:** {selected_result['finish_distance']}
-                - **Target:** ~10% dry
-                """)
+                <div class="phase-details visible">
+                <strong>Temperature:</strong> {selected_result['finish_temp_range']}<br>
+                <strong>Distance:</strong> {selected_result['finish_distance']}<br>
+                <strong>Target:</strong> ~10% dry
+                </div>
+                """, unsafe_allow_html=True)
             
             # Total time - PROMINENTLY DISPLAYED
             st.markdown(f"""
