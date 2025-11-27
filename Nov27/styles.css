@@ -622,7 +622,16 @@ button:disabled {
 .main .block-container {
     padding-left: var(--space-8);
     padding-right: var(--space-8);
-    padding-top: 0;
+    padding-top: 0 !important;
+}
+
+/* Remove top padding from stMainBlockContainer at all screen widths */
+.stMainBlockContainer.block-container {
+    padding-top: 0 !important;
+}
+
+[class*="st-emotion-cache"] .block-container {
+    padding-top: 0 !important;
 }
 
 /* Markdown styling for cards */
@@ -687,4 +696,13 @@ h1 {
 /* Preserve specific structural styles but not font size */
 h1, h2, h3, h4, h5, h6 {
     font-weight: 700 !important;
+}
+
+/* Override Streamlit container styling */
+.st-ba {
+    height: auto !important;
+}
+
+.st-b7 {
+    background-color: transparent !important;
 }

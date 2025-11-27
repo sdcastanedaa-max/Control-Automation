@@ -4,7 +4,7 @@ import json
 import math
 import plotly.graph_objects as go
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Hair Dryer Assistant", layout="wide")
 
@@ -28,6 +28,52 @@ def calculate_air_dry_duration(time_priority, hair_type):
     multipliers = {"fine": 0.8, "medium": 1.0, "thick": 1.2}
     air_dry_minutes *= multipliers[hair_type]
     return min(30, air_dry_minutes)
+
+def fetch_ree_electricity_price():
+    """Fetch real-time electricity price from REE API (Spanish market)"""
+    try:
+        endpoint = 'https://apidatos.ree.es'
+        get_archives = '/en/datos/mercados/precios-mercados-tiempo-real'
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Host': 'apidatos.ree.es'
+        }
+        
+        # Get today's data
+        today = datetime.now().strftime('%Y-%m-%dT00:00')
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%dT00:00')
+        
+        params = {
+            'start_date': today,
+            'end_date': tomorrow,
+            'time_trunc': 'hour'
+        }
+        
+        response = requests.get(
+            endpoint + get_archives,
+            headers=headers,
+            params=params,
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Extract price data from included sections
+            if 'included' in data and len(data['included']) > 0:
+                prices = data['included'][0].get('attributes', {}).get('values', [])
+                if prices:
+                    # Get current hour price (in €/MWh, convert to €/kWh)
+                    current_hour = datetime.now().hour
+                    if current_hour < len(prices):
+                        price_mwh = prices[current_hour]['value']
+                        price_kwh = price_mwh / 1000  # Convert €/MWh to €/kWh
+                        return price_kwh
+        
+        return None
+    except Exception as e:
+        print(f"REE API error: {e}")
+        return None
 
 def calculate_recommendations(temp, humidity, hair_type, porosity, towel_level, time_priority):
     """Calculate recommendations based on conditions"""
@@ -100,9 +146,8 @@ def calculate_recommendations(temp, humidity, hair_type, porosity, towel_level, 
     finish_power = power_map[finish_heat["name"]]
     energy_kwh = (bulk_power * modified_bulk_time + finish_power * modified_finish_time) / 60000
     
-    # Use default electricity price for now (will be overridden in main code)
-    elec_price = 0.26
-    cost = energy_kwh * elec_price
+    # Store energy for later cost calculation with actual electricity price
+    cost = energy_kwh  # Will be multiplied by actual elec_price later
     
     # Warnings and tips
     warnings = []
@@ -202,21 +247,29 @@ if generate_btn:
         temp = weather_data["current"]["temperature_2m"]
         humidity = weather_data["current"]["relative_humidity_2m"]
         
-        # Electricity price mapping
-        price_map = {
-            "spain": 0.28, "barcelona": 0.28, "madrid": 0.28,
-            "france": 0.22, "paris": 0.22,
-            "germany": 0.35, "berlin": 0.35,
-            "italy": 0.26, "rome": 0.26,
-            "uk": 0.28, "london": 0.28,
-            "netherlands": 0.30, "amsterdam": 0.30,
-            "portugal": 0.25, "lisbon": 0.25,
-            "sweden": 0.18, "denmark": 0.24,
-            "poland": 0.20, "greece": 0.24, "athens": 0.24,
-            "usa": 0.16, "canada": 0.14,
-            "australia": 0.32, "japan": 0.30
-        }
-        elec_price = next((v for k, v in price_map.items() if k in location.lower()), 0.26)
+        # Try to fetch real-time price from REE API for Spanish locations
+        is_spain = any(city in location.lower() for city in ["spain", "barcelona", "madrid", "bilbao", "valencia", "seville"])
+        elec_price = None
+        
+        if is_spain:
+            elec_price = fetch_ree_electricity_price()
+        
+        # Fallback to price map if REE fails or location is not Spain
+        if elec_price is None:
+            price_map = {
+                "spain": 0.28, "barcelona": 0.28, "madrid": 0.28,
+                "france": 0.22, "paris": 0.22,
+                "germany": 0.35, "berlin": 0.35,
+                "italy": 0.26, "rome": 0.26,
+                "uk": 0.28, "london": 0.28,
+                "netherlands": 0.30, "amsterdam": 0.30,
+                "portugal": 0.25, "lisbon": 0.25,
+                "sweden": 0.18, "denmark": 0.24,
+                "poland": 0.20, "greece": 0.24, "athens": 0.24,
+                "usa": 0.16, "canada": 0.14,
+                "australia": 0.32, "japan": 0.30
+            }
+            elec_price = next((v for k, v in price_map.items() if k in location.lower()), 0.26)
         
     except:
         temp, humidity, elec_price = 20, 60, 0.26
@@ -234,6 +287,8 @@ if generate_btn:
             rec = calculate_recommendations(temp, humidity, hair_type, porosity, towel_level, priority)
             rec["towel_level"] = towel_level
             rec["priority"] = priority
+            # Multiply energy by actual electricity price for cost
+            rec["cost"] = rec["cost"] * elec_price
             all_results.append(rec)
             costs_data.append({"cost": rec["cost"], "priority": priority, "towel_level": towel_level})
     
@@ -259,10 +314,15 @@ if "results" in st.session_state:
     elec_price = results["elec_price"]
 
     # Default selection
-    selected_priority_idx = st.session_state.get("selected_priority_idx", results["lowest_cost_idx"] // len(results["towel_levels"]))
-    selected_towel_idx = st.session_state.get("selected_towel_idx", results["lowest_cost_idx"] % len(results["towel_levels"]))
+    # costs_data is built with towel as outer loop, priority as inner loop
+    # So: lowest_cost_idx = towel_idx * len(priorities) + priority_idx
+    num_priorities = len(results["priorities"])
+    num_towels = len(results["towel_levels"])
+    
+    selected_towel_idx = st.session_state.get("selected_towel_idx", results["lowest_cost_idx"] // num_priorities)
+    selected_priority_idx = st.session_state.get("selected_priority_idx", results["lowest_cost_idx"] % num_priorities)
 
-    result_idx = selected_priority_idx * len(results["towel_levels"]) + selected_towel_idx
+    result_idx = selected_towel_idx * num_priorities + selected_priority_idx
     selected_result = results["all_results"][result_idx]
 
     # All four sections in one row
@@ -412,7 +472,7 @@ if "results" in st.session_state:
         st.markdown(f"""
         <div style='border-left: 3px solid #21898D; padding: 0.75rem 1rem; margin: 1.5rem 0;'>
             <div style='display: flex; align-items: center; justify-content: space-between;'>
-                <span style='font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px;'>Total Drying Time</span>
+                <span style='font-size: 12px; font-weight: 600; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.6px;'>Total Drying Time</span>
                 <span style='font-size: 20px; font-weight: 700; color: #21898D;'>⏱️ {selected_result['total_time']} min</span>
             </div>
         </div>
@@ -424,12 +484,12 @@ if "results" in st.session_state:
     with col_energy:
         st.markdown('### ⚡ Energy Cost')
 
-        # Calculate cost
+        # Calculate energy and cost from stored data
         bulk_power = power_map[selected_result["heat_setting"]]
         finish_idx = max(0, selected_result["heat_index"] - 1)
         finish_power = power_map[heat_settings[finish_idx]["name"]]
         energy_kwh = (bulk_power * selected_result["bulk_time"] + finish_power * selected_result["finish_time"]) / 60000
-        cost = energy_kwh * elec_price
+        cost = selected_result["cost"]  # Use pre-calculated cost that matches the chart
 
         st.markdown(f"""
         <div class="result-item">
@@ -460,7 +520,6 @@ if "results" in st.session_state:
     st.markdown('</div>', unsafe_allow_html=True)
     
     # Row 3: Cost Chart
-    st.markdown('<div class="section">', unsafe_allow_html=True)
     st.markdown('### 📊 Cost Analysis by Priority & Towel-Dry Level')
 
     # Create chart
@@ -503,6 +562,7 @@ if "results" in st.session_state:
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown('<div class="section">', unsafe_allow_html=True)
     # Interactive Selection Controls
     col_priority, col_towel = st.columns(2)
 
@@ -527,7 +587,8 @@ if "results" in st.session_state:
         selected_towel_idx = results["towel_levels"].index(int(selected_towel.split('%')[0]))
 
     # Update selected result based on user selection
-    result_idx = selected_priority_idx * len(results["towel_levels"]) + selected_towel_idx
+    # Match the indexing used in all_results: towel_idx * num_priorities + priority_idx
+    result_idx = selected_towel_idx * len(results["priorities"]) + selected_priority_idx
     selected_result = results["all_results"][result_idx]
 
     # Store in session state for persistence
