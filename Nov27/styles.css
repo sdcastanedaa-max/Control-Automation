@@ -16,8 +16,8 @@
     --color-primary: var(--color-teal-500);
     --color-primary-hover: var(--color-teal-600);
     --color-primary-active: var(--color-teal-700);
-    --color-border: rgba(var(--color-brown-600-rgb), 0.2);
-    --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+    --color-border: rgba(var(--color-brown-600-rgb), 0.25);
+    --color-divider: rgba(var(--color-brown-600-rgb), 0.15);
     --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --space-2: 2px;
     --space-4: 4px;
@@ -27,8 +27,6 @@
     --space-16: 16px;
     --space-20: 20px;
     --space-24: 24px;
-    --radius-base: 8px;
-    --radius-lg: 12px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -48,8 +46,8 @@
         --color-primary: var(--color-teal-300);
         --color-primary-hover: var(--color-teal-400);
         --color-primary-active: var(--color-teal-800);
-        --color-border: rgba(var(--color-gray-400-rgb), 0.3);
-        --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+        --color-border: rgba(var(--color-gray-400-rgb), 0.35);
+        --color-divider: rgba(var(--color-gray-400-rgb), 0.2);
     }
 }
 
@@ -60,55 +58,58 @@
 body {
     font-family: var(--font-family-base);
     margin: 0;
-    padding: var(--space-6);
+    padding: var(--space-4) var(--space-8);
     background: var(--color-background);
     color: var(--color-text);
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
 /* Streamlit main container */
 .main {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto !important;
 }
 
 h1 {
     font-size: 12px;
     font-weight: 700;
-    margin: 0 0 var(--space-4) 0;
+    margin: 0;
+    padding: 0;
     color: var(--color-primary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    border-bottom: none;
+    display: inline-flex;
+    align-items: center;
 }
 
 h2 {
     font-size: 12px;
     font-weight: 600;
-    margin: 0 0 var(--space-4) 0;
+    margin: 0 0 var(--space-8) 0;
     color: var(--color-text);
 }
 
-.card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-card-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-8);
+/* Section divider */
+.section {
+    padding: var(--space-8) 0;
+    border-bottom: 1px solid var(--color-divider);
 }
 
-.card:not(.row *) {
-    margin-bottom: var(--space-6);
+.section:last-child {
+    border-bottom: none;
 }
 
 .row {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-6);
-    margin-bottom: var(--space-6);
+    gap: var(--space-24);
+    margin-bottom: 0;
 }
 
 @media (min-width: 768px) {
@@ -121,7 +122,7 @@ h2 {
 }
 
 .form-group {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-8);
 }
 
 label {
@@ -136,18 +137,60 @@ label {
 
 input, select {
     width: 100%;
-    padding: var(--space-6) var(--space-8);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-base);
-    background: var(--color-surface);
+    padding: var(--space-2) 0;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    background: transparent;
     color: var(--color-text);
     font-size: 12px;
     transition: all 0.2s;
 }
 
 input:focus, select:focus {
-    outline: 2px solid var(--color-primary);
-    border-color: var(--color-primary);
+    outline: none;
+    border-bottom-color: var(--color-primary);
+}
+
+/* Minimal input styles for inline layout */
+.minimal-input input,
+.minimal-input select {
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Title row with inline inputs */
+.title-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-16);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-divider);
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+}
+
+.title-row h1 {
+    flex-shrink: 0;
+}
+
+.title-row .input-group {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-6);
+    flex-shrink: 0;
+}
+
+.title-row label {
+    margin: 0;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+.title-row input,
+.title-row select {
+    min-width: 120px;
+    width: auto;
 }
 
 button {
@@ -185,27 +228,30 @@ button:disabled {
 }
 
 .result-section {
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-12);
 }
 
 .result-section h2 {
     font-size: 12px;
     font-weight: 700;
-    margin: 0 0 var(--space-4) 0;
+    margin: 0 0 var(--space-8) 0;
+    padding-bottom: var(--space-4);
     color: var(--color-primary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--color-divider);
 }
 
 .result-item {
     display: flex;
     justify-content: space-between;
-    padding: var(--space-4) 0;
-    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-6) 0;
+    border-bottom: 1px solid var(--color-divider);
 }
 
 .result-item:last-child {
     border-bottom: none;
+    padding-bottom: 0;
 }
 
 .result-label {
@@ -224,26 +270,24 @@ button:disabled {
 }
 
 .warning {
-    background: rgba(249, 115, 22, 0.08);
-    border: 1px solid rgba(249, 115, 22, 0.25);
-    border-radius: var(--radius-base);
-    padding: var(--space-6);
-    margin-top: var(--space-4);
-    margin-bottom: var(--space-4);
+    background: transparent;
+    border-left: 2px solid rgba(249, 115, 22, 0.6);
+    padding: var(--space-6) var(--space-8);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.5;
     color: var(--color-text);
 }
 
 .info {
-    background: rgba(33, 128, 141, 0.08);
-    border: 1px solid rgba(33, 128, 141, 0.25);
-    border-radius: var(--radius-base);
-    padding: var(--space-6);
-    margin-top: var(--space-4);
-    margin-bottom: var(--space-4);
+    background: transparent;
+    border-left: 2px solid var(--color-primary);
+    padding: var(--space-6) var(--space-8);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.5;
     color: var(--color-text);
 }
 
@@ -261,25 +305,22 @@ button:disabled {
 .chart-container {
     position: relative;
     height: 280px;
-    margin-bottom: var(--space-4);
-    border-radius: var(--radius-base);
+    margin-bottom: var(--space-8);
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .recommended-badge {
     display: inline-block;
-    background: rgba(33, 128, 141, 0.15);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-base);
+    background: transparent;
+    border-left: 3px solid var(--color-primary);
     padding: var(--space-4) var(--space-8);
     font-size: 11px;
     font-weight: 700;
     color: var(--color-primary);
-    margin-top: var(--space-4);
-    margin-bottom: var(--space-4);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.6px;
 }
 
 .info-button {
@@ -294,21 +335,37 @@ button:disabled {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.2s;
 }
 
 .info-button:hover {
     background: none;
-    opacity: 0.8;
+    opacity: 1;
+}
+
+/* Streamlit secondary button styling for info buttons */
+[class*="st-emotion-cache"] button {
+    background: none !important;
+    border: none !important;
+    color: var(--color-primary) !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+[class*="st-emotion-cache"] button:hover {
+    background: none !important;
+    opacity: 0.8 !important;
 }
 
 .phase-details {
     display: none;
-    padding: var(--space-6);
-    background: rgba(33, 128, 141, 0.04);
-    border-radius: var(--radius-base);
-    margin-top: var(--space-2);
+    padding: var(--space-6) var(--space-8);
+    background: transparent;
+    border-left: 2px solid var(--color-divider);
+    margin-top: var(--space-4);
+    margin-left: var(--space-8);
     font-size: 12px;
-    border: 1px solid rgba(33, 128, 141, 0.1);
 }
 
 .phase-details.visible {
@@ -345,12 +402,10 @@ button:disabled {
 .selection-controls {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-6);
-    margin-bottom: var(--space-6);
-    padding: var(--space-6);
-    background: rgba(33, 128, 141, 0.06);
-    border: 1px solid rgba(33, 128, 141, 0.15);
-    border-radius: var(--radius-base);
+    gap: var(--space-12);
+    margin-top: var(--space-12);
+    padding-top: var(--space-12);
+    border-top: 1px solid var(--color-divider);
 }
 
 @media (max-width: 768px) {
@@ -445,46 +500,41 @@ button:disabled {
 
 @media (prefers-color-scheme: dark) {
     .warning {
-        background: rgba(249, 115, 22, 0.12);
-        border-color: rgba(249, 115, 22, 0.3);
+        border-left-color: rgba(249, 115, 22, 0.7);
     }
     .info {
-        background: rgba(50, 184, 198, 0.12);
-        border-color: rgba(50, 184, 198, 0.3);
+        border-left-color: var(--color-primary);
     }
 }
 
 /* Streamlit-specific overrides */
 .stButton > button {
     width: 100%;
-    padding: 8px 12px;
+    padding: var(--space-8) var(--space-12);
     background: var(--color-primary);
     color: white;
     border: none;
-    border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
-    box-shadow: 0 2px 6px rgba(33, 128, 141, 0.2);
     transition: all 0.2s;
 }
 
 .stButton > button:hover {
     background: var(--color-primary-hover);
-    box-shadow: 0 4px 12px rgba(33, 128, 141, 0.3);
 }
 
 .stSelectbox {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-8);
 }
 
 .stExpander {
-    background: rgba(33, 128, 141, 0.04);
-    border: 1px solid rgba(33, 128, 141, 0.15);
-    border-radius: var(--radius-base);
+    background: transparent;
+    border-top: 1px solid var(--color-divider);
+    border-bottom: 1px solid var(--color-divider);
 }
 
 .stExpander > div:first-child > button {
-    padding: var(--space-4) var(--space-8);
+    padding: var(--space-8) 0;
     font-size: 12px;
     font-weight: 600;
 }
@@ -499,28 +549,43 @@ button:disabled {
     letter-spacing: 0.5px;
 }
 
-/* Input styling */
+/* Input styling - minimal bottom-border style */
 .stTextInput > div > div > input {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
     color: var(--color-text);
-    border-radius: var(--radius-base);
+    border-radius: 0;
+    padding: var(--space-2) 0;
+    font-size: 12px;
 }
 
 .stTextInput > div > div > input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(33, 128, 141, 0.1);
+    border-bottom-color: var(--color-primary);
+    box-shadow: none;
+    outline: none;
 }
 
-.stSelectbox > div > div > select {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    color: var(--color-text);
-    border-radius: var(--radius-base);
+.stSelectbox > div > div > div {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    padding: var(--space-2) 0;
 }
 
-.stSelectbox > div > div > select:focus {
-    border-color: var(--color-primary);
+.stSelectbox > div > div > div:focus-within {
+    border-bottom-color: var(--color-primary);
+    box-shadow: none;
+}
+
+/* Label styling for minimal inputs */
+.stTextInput > label,
+.stSelectbox > label {
+    font-size: 11px !important;
+    color: var(--color-text-secondary) !important;
+    font-weight: 500 !important;
+    margin-bottom: var(--space-2) !important;
 }
 
 /* Column spacing */
@@ -535,9 +600,9 @@ button:disabled {
 
 /* Block container padding */
 .main .block-container {
-    padding-left: var(--space-6);
-    padding-right: var(--space-6);
-    padding-top: var(--space-2);
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+    padding-top: 0;
 }
 
 /* Markdown styling for cards */

@@ -142,8 +142,6 @@ def calculate_recommendations(temp, humidity, hair_type, porosity, towel_level, 
 
 
 
-st.title("Hair Dryer Assistant")
-
 # Define heat settings and power map globally (used in results)
 heat_settings = [
     {"name": "Low", "temp": "50-60°C", "distance": "18-20 cm"},
@@ -152,68 +150,37 @@ heat_settings = [
 ]
 power_map = {"Low": 800, "Medium": 1200, "High": 1500}
 
-# Input Section
-col1, col2 = st.columns([1, 1])
+# Title row with inline inputs
+st.markdown('<div class="title-row">', unsafe_allow_html=True)
 
-with col1:
-    with st.container(border=True):
-        st.markdown('### ⚙️ Hair Settings')
-        
-        # Location input - inline with label
-        col_loc_label, col_loc_input = st.columns([0.3, 0.7])
-        with col_loc_label:
-            st.markdown('<label>📍 Location</label>', unsafe_allow_html=True)
-        with col_loc_input:
-            location = st.text_input("Location (City or Coordinates)", value="Barcelona", placeholder="Barcelona or 41.3874,2.1686", label_visibility="collapsed")
-        
-        # Hair Thickness - label with info button inline
-        col_thick_label, col_thick_btn, col_thick_input = st.columns([0.22, 0.08, 0.7])
-        with col_thick_label:
-            st.markdown('<label>Hair Thickness</label>', unsafe_allow_html=True)
-        with col_thick_btn:
-            if st.button("ⓘ", key="hair_thickness_btn"):
-                st.session_state.hair_thickness_info = not st.session_state.get("hair_thickness_info", False)
-        with col_thick_input:
-            hair_type = st.selectbox("Hair Thickness", ["Fine", "Medium", "Thick"], index=1, label_visibility="collapsed")
-            hair_type = hair_type.lower()
-        
-        if st.session_state.get("hair_thickness_info", False):
-            st.markdown("""
-            <div class="info">
-            <strong>Feel an individual strand:</strong><br>
-            • <strong>Fine</strong> = hard to see and feel<br>
-            • <strong>Medium</strong> = visible but not coarse<br>
-            • <strong>Thick</strong> = strong and sturdy
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Hair Porosity - label with info button inline
-        col_poro_label, col_poro_btn, col_poro_input = st.columns([0.22, 0.08, 0.7])
-        with col_poro_label:
-            st.markdown('<label>Hair Porosity</label>', unsafe_allow_html=True)
-        with col_poro_btn:
-            if st.button("ⓘ", key="hair_porosity_btn"):
-                st.session_state.hair_porosity_info = not st.session_state.get("hair_porosity_info", False)
-        with col_poro_input:
-            porosity = st.selectbox("Hair Porosity", ["Low", "Normal", "High"], index=1, label_visibility="collapsed")
-            porosity = porosity.lower() if porosity != "Normal" else "normal"
-        
-        if st.session_state.get("hair_porosity_info", False):
-            st.markdown("""
-            <div class="info">
-            <strong>Drop a strand in water—wait 3–5 minutes:</strong><br>
-            • <strong>Low</strong> = floats, repels water, dries slow<br>
-            • <strong>Normal</strong> = sinks slowly<br>
-            • <strong>High</strong> = sinks fast, dries fast, may frizz
-            </div>
-            """, unsafe_allow_html=True)
-        
-        generate_btn = st.button("Generate Recommendations", use_container_width=True)
+col_title, col_location, col_thickness, col_porosity, col_button = st.columns([1.2, 1.5, 1.2, 1.2, 1])
 
-with col2:
-    with st.container(border=True):
-        st.markdown('### 🌡️ Environment Conditions')
-        env_placeholder = st.empty()
+with col_title:
+    st.markdown('<h1>Hair Dryer Assistant</h1>', unsafe_allow_html=True)
+
+with col_location:
+    st.markdown('<div class="input-group minimal-input">', unsafe_allow_html=True)
+    location = st.text_input("Location", value="Barcelona", placeholder="City or Coords", label_visibility="visible", key="location_input")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_thickness:
+    st.markdown('<div class="input-group minimal-input">', unsafe_allow_html=True)
+    hair_type = st.selectbox("Hair Thickness", ["Fine", "Medium", "Thick"], index=1, label_visibility="visible", key="thickness_input")
+    hair_type = hair_type.lower()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_porosity:
+    st.markdown('<div class="input-group minimal-input">', unsafe_allow_html=True)
+    porosity = st.selectbox("Hair Porosity", ["Low", "Normal", "High"], index=1, label_visibility="visible", key="porosity_input")
+    porosity = porosity.lower() if porosity != "Normal" else "normal"
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_button:
+    st.markdown('<div style="padding-top: 18px;">', unsafe_allow_html=True)
+    generate_btn = st.button("Generate", key="generate_btn")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Processing
 if generate_btn:
@@ -290,16 +257,39 @@ if "results" in st.session_state:
     temp = results["weather"]["temp"]
     humidity = results["weather"]["humidity"]
     elec_price = results["elec_price"]
-    
+
     # Default selection
     selected_priority_idx = st.session_state.get("selected_priority_idx", results["lowest_cost_idx"] // len(results["towel_levels"]))
     selected_towel_idx = st.session_state.get("selected_towel_idx", results["lowest_cost_idx"] % len(results["towel_levels"]))
-    
+
     result_idx = selected_priority_idx * len(results["towel_levels"]) + selected_towel_idx
     selected_result = results["all_results"][result_idx]
-    
-    # Update environment card
-    with env_placeholder.container():
+
+    # All four sections in one row
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    col_settings, col_environment, col_protocol, col_energy = st.columns([1, 1, 1, 1])
+
+    # Column 1: Hair Settings Summary
+    with col_settings:
+        st.markdown('### ⚙️ Hair Settings')
+        st.markdown(f"""
+        <div class="result-item">
+            <span class="result-label">Location</span>
+            <span class="result-value">{results["location"]}</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Hair Type</span>
+            <span class="result-value">{hair_type.capitalize()}</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Porosity</span>
+            <span class="result-value">{porosity.capitalize()}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Column 2: Environment Conditions
+    with col_environment:
+        st.markdown('### 🌡️ Environment Conditions')
         st.markdown(f"""
         <div class="result-item">
             <span class="result-label">Temperature</span>
@@ -318,233 +308,235 @@ if "results" in st.session_state:
             <span class="result-value">{selected_result['env_type']}</span>
         </div>
         """, unsafe_allow_html=True)
-        
+
         if selected_result.get('tips'):
             st.markdown(f'<div class="info">{"<br>".join(selected_result["tips"])}</div>', unsafe_allow_html=True)
-    
-    # Row 2: Drying Protocol + Energy Cost
-    col_protocol, col_energy = st.columns([1, 1])
-    
+
+    # Column 3: Drying Protocol
     with col_protocol:
-        with st.container(border=True):
-            st.markdown('### 📋 Drying Protocol')
-            
-            # Towel-dry phase
-            towel_dry_duration = 1 if (100 - results["towel_levels"][selected_towel_idx]) <= 20 else 2 if (100 - results["towel_levels"][selected_towel_idx]) <= 35 else 3
-            reduction = int((1 - (selected_result["bulk_time"] + selected_result["finish_time"]) / (selected_result["bulk_time"] + selected_result["finish_time"] + towel_dry_duration)) * 100) if (selected_result["bulk_time"] + selected_result["finish_time"] > 0) else 0
-            
-            # Towel-dry phase - always visible
-            col_towel_label, col_towel_btn = st.columns([0.9, 0.1])
-            with col_towel_label:
-                st.markdown(f"""<div class="result-item">
-                    <span class="result-label">Towel-Dry Phase</span>
-                    <span class="result-value">~{towel_dry_duration} min</span>
-                </div>""", unsafe_allow_html=True)
-            with col_towel_btn:
-                if st.button("ⓘ", key="towel_dry_info_btn", help="Show towel-dry details"):
-                    st.session_state.towel_dry_info = not st.session_state.get("towel_dry_info", False)
-            
-            if st.session_state.get("towel_dry_info", False):
-                st.markdown(f"""
-                <div class="phase-details visible">
-                <strong>Remaining Wetness:</strong> {results["towel_levels"][selected_towel_idx]}%<br>
-                <strong>Reduces blow-dry time by:</strong> ~{reduction}%<br><br>
-                <strong>Visual Progress Guide:</strong><br>
-                🚫 Dripping or pooling: Too wet (0-30%)<br>
-                💧 Towel heavy, hair saturated: ~40%<br>
-                🤏 Towel less damp, drips stop: ~60-70%<br>
-                ✓ Hair moist, lifts easily, ready to dry: ~80%
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Air-dry phase - always visible if recommended
-            if selected_result['hybrid_drying_recommended']:
-                col_air_label, col_air_btn = st.columns([0.9, 0.1])
-                with col_air_label:
-                    st.markdown(f"""<div class="result-item">
-                        <span class="result-label">Air Dry Phase</span>
-                        <span class="result-value">{selected_result['air_dry_minutes']} min</span>
-                    </div>""", unsafe_allow_html=True)
-                with col_air_btn:
-                    if st.button("ⓘ", key="air_dry_info_btn", help="Show air-dry details"):
-                        st.session_state.air_dry_info = not st.session_state.get("air_dry_info", False)
-                
-                if st.session_state.get("air_dry_info", False):
-                    st.markdown("""
-                    <div class="phase-details visible">
-                    <strong>Temperature:</strong> Room temperature<br>
-                    <strong>Benefit:</strong> No heat required, reduces heat damage
-                    </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div class="result-item disabled">
-                    <span class="result-label disabled">Air Dry Phase: Not recommended</span>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Bulk phase - always visible
-            col_bulk_label, col_bulk_btn = st.columns([0.9, 0.1])
-            with col_bulk_label:
-                st.markdown(f"""<div class="result-item">
-                    <span class="result-label">Bulk Phase ({selected_result['heat_setting']} heat)</span>
-                    <span class="result-value">{selected_result['bulk_time']} min</span>
-                </div>""", unsafe_allow_html=True)
-            with col_bulk_btn:
-                if st.button("ⓘ", key="bulk_phase_info_btn", help="Show bulk phase details"):
-                    st.session_state.bulk_phase_info = not st.session_state.get("bulk_phase_info", False)
-            
-            if st.session_state.get("bulk_phase_info", False):
-                st.markdown(f"""
-                <div class="phase-details visible">
-                <strong>Temperature:</strong> {selected_result['temp_range']}<br>
-                <strong>Distance:</strong> {selected_result['distance']}<br>
-                <strong>Target:</strong> ~90% dry
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Finish phase - always visible
-            col_finish_label, col_finish_btn = st.columns([0.9, 0.1])
-            with col_finish_label:
-                st.markdown(f"""<div class="result-item">
-                    <span class="result-label">Finish Phase (Low/Medium heat)</span>
-                    <span class="result-value">{selected_result['finish_time']} min</span>
-                </div>""", unsafe_allow_html=True)
-            with col_finish_btn:
-                if st.button("ⓘ", key="finish_phase_info_btn", help="Show finish phase details"):
-                    st.session_state.finish_phase_info = not st.session_state.get("finish_phase_info", False)
-            
-            if st.session_state.get("finish_phase_info", False):
-                st.markdown(f"""
-                <div class="phase-details visible">
-                <strong>Temperature:</strong> {selected_result['finish_temp_range']}<br>
-                <strong>Distance:</strong> {selected_result['finish_distance']}<br>
-                <strong>Target:</strong> ~10% dry
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Total time - PROMINENTLY DISPLAYED
+        st.markdown('### 📋 Drying Protocol')
+
+        # Towel-dry phase
+        towel_dry_duration = 1 if (100 - results["towel_levels"][selected_towel_idx]) <= 20 else 2 if (100 - results["towel_levels"][selected_towel_idx]) <= 35 else 3
+        reduction = int((1 - (selected_result["bulk_time"] + selected_result["finish_time"]) / (selected_result["bulk_time"] + selected_result["finish_time"] + towel_dry_duration)) * 100) if (selected_result["bulk_time"] + selected_result["finish_time"] > 0) else 0
+
+        # Towel-dry phase - always visible
+        col_towel_label, col_towel_btn = st.columns([0.9, 0.1])
+        with col_towel_label:
+            st.markdown(f"""<div class="result-item">
+                <span class="result-label">Towel-Dry Phase</span>
+                <span class="result-value">~{towel_dry_duration} min</span>
+            </div>""", unsafe_allow_html=True)
+        with col_towel_btn:
+            if st.button("ⓘ", key="towel_dry_info_btn", help="Show towel-dry details"):
+                st.session_state.towel_dry_info = not st.session_state.get("towel_dry_info", False)
+
+        if st.session_state.get("towel_dry_info", False):
             st.markdown(f"""
-            <div style='background: rgba(33, 128, 141, 0.1); border: 2px solid #21898D; border-radius: 8px; padding: 1rem; text-align: center; margin: 1.5rem 0;'>
-                <div style='font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;'>Total Drying Time</div>
-                <div style='font-size: 28px; font-weight: 700; color: #21898D;'>⏱️ {selected_result['total_time']} min</div>
+            <div class="phase-details visible">
+            <strong>Remaining Wetness:</strong> {results["towel_levels"][selected_towel_idx]}%<br>
+            <strong>Reduces blow-dry time by:</strong> ~{reduction}%<br><br>
+            <strong>Visual Progress Guide:</strong><br>
+            🚫 Dripping or pooling: Too wet (0-30%)<br>
+            💧 Towel heavy, hair saturated: ~40%<br>
+            🤏 Towel less damp, drips stop: ~60-70%<br>
+            ✓ Hair moist, lifts easily, ready to dry: ~80%
             </div>
             """, unsafe_allow_html=True)
-            
-            if selected_result.get('warnings'):
-                st.markdown(f'<div class="warning">{"<br>".join(selected_result["warnings"])}</div>', unsafe_allow_html=True)
-    
-    with col_energy:
-        with st.container(border=True):
-            st.markdown('### ⚡ Energy Cost')
-            
-            # Calculate cost
-            bulk_power = power_map[selected_result["heat_setting"]]
-            finish_idx = max(0, selected_result["heat_index"] - 1)
-            finish_power = power_map[heat_settings[finish_idx]["name"]]
-            energy_kwh = (bulk_power * selected_result["bulk_time"] + finish_power * selected_result["finish_time"]) / 60000
-            cost = energy_kwh * elec_price
-            
+
+        # Air-dry phase - always visible if recommended
+        if selected_result['hybrid_drying_recommended']:
+            col_air_label, col_air_btn = st.columns([0.9, 0.1])
+            with col_air_label:
+                st.markdown(f"""<div class="result-item">
+                    <span class="result-label">Air Dry Phase</span>
+                    <span class="result-value">{selected_result['air_dry_minutes']} min</span>
+                </div>""", unsafe_allow_html=True)
+            with col_air_btn:
+                if st.button("ⓘ", key="air_dry_info_btn", help="Show air-dry details"):
+                    st.session_state.air_dry_info = not st.session_state.get("air_dry_info", False)
+
+            if st.session_state.get("air_dry_info", False):
+                st.markdown("""
+                <div class="phase-details visible">
+                <strong>Temperature:</strong> Room temperature<br>
+                <strong>Benefit:</strong> No heat required, reduces heat damage
+                </div>
+                """, unsafe_allow_html=True)
+        else:
             st.markdown(f"""
-            <div class="result-item">
-                <span class="result-label">Electricity Price</span>
-                <span class="result-value">€{elec_price:.4f}/kWh</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Hair Dryer Power</span>
-                <span class="result-value">{int((bulk_power + finish_power)/2)}W</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Total Energy Used</span>
-                <span class="result-value">{energy_kwh:.3f} kWh</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Estimated Cost</span>
-                <span class="result-value">€{cost:.3f}</span>
+            <div class="result-item disabled">
+                <span class="result-label disabled">Air Dry Phase: Not recommended</span>
             </div>
             """, unsafe_allow_html=True)
-            
-            is_recommended = result_idx == results["lowest_cost_idx"]
-            priority_pct = int(results["priorities"][selected_priority_idx] * 100)
-            if is_recommended:
-                st.markdown(f'<div class="recommended-badge">✓ Recommended: Priority {priority_pct}%, {results["towel_levels"][selected_towel_idx]}% Wetness (Lowest Cost)</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="recommended-badge">Priority {priority_pct}%, {results["towel_levels"][selected_towel_idx]}% Wetness</div>', unsafe_allow_html=True)
-    
-    # Row 3: Cost Chart
-    with st.container(border=True):
-        st.markdown('### 📊 Cost Analysis by Priority & Towel-Dry Level')
-        
-        # Create chart
-        fig = go.Figure()
-        colors = ['rgba(33, 128, 141, 0.8)', 'rgba(33, 128, 141, 0.5)', 'rgba(33, 128, 141, 0.3)']
-        
-        for i, towel_level in enumerate(results["towel_levels"]):
-            level_costs = [c["cost"] for c in results["costs_data"] if c["towel_level"] == towel_level]
-            fig.add_trace(go.Bar(
-                name=f'{towel_level}% Wetness',
-                x=[f'{int(p*100)}%' for p in results["priorities"]],
-                y=level_costs,
-                marker_color=colors[i],
-                marker_line_color='rgba(33, 128, 141, 1)',
-                marker_line_width=2,
-                hovertemplate='<b>%{fullData.name}</b><br>' +
-                             'Priority: %{x}<br>' +
-                             'Cost: €%{y:.4f}<extra></extra>'
-            ))
-        
-        fig.update_layout(
-            xaxis_title="Time Priority (0% Gentle → 100% Fast)",
-            yaxis_title="Cost (€)",
-            barmode='group',
-            height=400,
-            showlegend=True,
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#1e293b', size=12),
-            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
-            margin=dict(l=50, r=50, t=50, b=50)
-        )
-        
-        st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
-        
-        # Add instruction text
-        st.markdown("""
-        <div class="info">
-        💡 <strong>Tip:</strong> Use the selectors below to explore different drying strategies. Try different priority levels (0% = gentle, 100% = fast) and towel-dry levels to find your preferred balance between time and energy cost.
+
+        # Bulk phase - always visible
+        col_bulk_label, col_bulk_btn = st.columns([0.9, 0.1])
+        with col_bulk_label:
+            st.markdown(f"""<div class="result-item">
+                <span class="result-label">Bulk Phase ({selected_result['heat_setting']} heat)</span>
+                <span class="result-value">{selected_result['bulk_time']} min</span>
+            </div>""", unsafe_allow_html=True)
+        with col_bulk_btn:
+            if st.button("ⓘ", key="bulk_phase_info_btn", help="Show bulk phase details"):
+                st.session_state.bulk_phase_info = not st.session_state.get("bulk_phase_info", False)
+
+        if st.session_state.get("bulk_phase_info", False):
+            st.markdown(f"""
+            <div class="phase-details visible">
+            <strong>Temperature:</strong> {selected_result['temp_range']}<br>
+            <strong>Distance:</strong> {selected_result['distance']}<br>
+            <strong>Target:</strong> ~90% dry
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Finish phase - always visible
+        col_finish_label, col_finish_btn = st.columns([0.9, 0.1])
+        with col_finish_label:
+            st.markdown(f"""<div class="result-item">
+                <span class="result-label">Finish Phase (Low/Medium heat)</span>
+                <span class="result-value">{selected_result['finish_time']} min</span>
+            </div>""", unsafe_allow_html=True)
+        with col_finish_btn:
+            if st.button("ⓘ", key="finish_phase_info_btn", help="Show finish phase details"):
+                st.session_state.finish_phase_info = not st.session_state.get("finish_phase_info", False)
+
+        if st.session_state.get("finish_phase_info", False):
+            st.markdown(f"""
+            <div class="phase-details visible">
+            <strong>Temperature:</strong> {selected_result['finish_temp_range']}<br>
+            <strong>Distance:</strong> {selected_result['finish_distance']}<br>
+            <strong>Target:</strong> ~10% dry
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Total time - PROMINENTLY DISPLAYED
+        st.markdown(f"""
+        <div style='border-left: 3px solid #21898D; padding: 0.75rem 1rem; margin: 1.5rem 0;'>
+            <div style='display: flex; align-items: center; justify-content: space-between;'>
+                <span style='font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px;'>Total Drying Time</span>
+                <span style='font-size: 20px; font-weight: 700; color: #21898D;'>⏱️ {selected_result['total_time']} min</span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
-        
-        # Interactive Selection Controls
-        col_priority, col_towel = st.columns(2)
-        
-        with col_priority:
-            selected_priority = st.selectbox(
-                "🎯 Priority Level",
-                options=[f"{int(p*100)}%" for p in results["priorities"]],
-                index=selected_priority_idx,
-                key="priority_selector",
-                help="0% = Gentle/Slow | 100% = Fast/High Heat"
-            )
-            selected_priority_idx = results["priorities"].index(float(selected_priority.strip('%')) / 100)
-        
-        with col_towel:
-            selected_towel = st.selectbox(
-                "💧 Towel-Dry Level",
-                options=[f"{int(t)}% Wetness" for t in results["towel_levels"]],
-                index=selected_towel_idx,
-                key="towel_selector",
-                help="Remaining wetness after towel drying"
-            )
-            selected_towel_idx = results["towel_levels"].index(int(selected_towel.split('%')[0]))
-        
-        # Update selected result based on user selection
-        result_idx = selected_priority_idx * len(results["towel_levels"]) + selected_towel_idx
-        selected_result = results["all_results"][result_idx]
-        
-        # Store in session state for persistence
-        st.session_state.selected_priority_idx = selected_priority_idx
-        st.session_state.selected_towel_idx = selected_towel_idx
+
+        if selected_result.get('warnings'):
+            st.markdown(f'<div class="warning">{"<br>".join(selected_result["warnings"])}</div>', unsafe_allow_html=True)
+    
+    with col_energy:
+        st.markdown('### ⚡ Energy Cost')
+
+        # Calculate cost
+        bulk_power = power_map[selected_result["heat_setting"]]
+        finish_idx = max(0, selected_result["heat_index"] - 1)
+        finish_power = power_map[heat_settings[finish_idx]["name"]]
+        energy_kwh = (bulk_power * selected_result["bulk_time"] + finish_power * selected_result["finish_time"]) / 60000
+        cost = energy_kwh * elec_price
+
+        st.markdown(f"""
+        <div class="result-item">
+            <span class="result-label">Electricity Price</span>
+            <span class="result-value">€{elec_price:.4f}/kWh</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Hair Dryer Power</span>
+            <span class="result-value">{int((bulk_power + finish_power)/2)}W</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Total Energy Used</span>
+            <span class="result-value">{energy_kwh:.3f} kWh</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Estimated Cost</span>
+            <span class="result-value">€{cost:.3f}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        is_recommended = result_idx == results["lowest_cost_idx"]
+        priority_pct = int(results["priorities"][selected_priority_idx] * 100)
+        if is_recommended:
+            st.markdown(f'<div class="recommended-badge">✓ Recommended: Priority {priority_pct}%, {results["towel_levels"][selected_towel_idx]}% Wetness (Lowest Cost)</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="recommended-badge">Priority {priority_pct}%, {results["towel_levels"][selected_towel_idx]}% Wetness</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Row 3: Cost Chart
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    st.markdown('### 📊 Cost Analysis by Priority & Towel-Dry Level')
+
+    # Create chart
+    fig = go.Figure()
+    colors = ['rgba(33, 128, 141, 0.8)', 'rgba(33, 128, 141, 0.5)', 'rgba(33, 128, 141, 0.3)']
+
+    for i, towel_level in enumerate(results["towel_levels"]):
+        level_costs = [c["cost"] for c in results["costs_data"] if c["towel_level"] == towel_level]
+        fig.add_trace(go.Bar(
+            name=f'{towel_level}% Wetness',
+            x=[f'{int(p*100)}%' for p in results["priorities"]],
+            y=level_costs,
+            marker_color=colors[i],
+            marker_line_color='rgba(33, 128, 141, 1)',
+            marker_line_width=2,
+            hovertemplate='<b>%{fullData.name}</b><br>' +
+                         'Priority: %{x}<br>' +
+                         'Cost: €%{y:.4f}<extra></extra>'
+        ))
+
+    fig.update_layout(
+        xaxis_title="Time Priority (0% Gentle → 100% Fast)",
+        yaxis_title="Cost (€)",
+        barmode='group',
+        height=280,
+        showlegend=True,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#1e293b', size=12),
+        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+        margin=dict(l=40, r=20, t=20, b=40)
+    )
+
+    st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
+
+    # Add instruction text
+    st.markdown("""
+    <div class="info">
+    💡 <strong>Tip:</strong> Use the selectors below to explore different drying strategies. Try different priority levels (0% = gentle, 100% = fast) and towel-dry levels to find your preferred balance between time and energy cost.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Interactive Selection Controls
+    col_priority, col_towel = st.columns(2)
+
+    with col_priority:
+        selected_priority = st.selectbox(
+            "🎯 Priority Level",
+            options=[f"{int(p*100)}%" for p in results["priorities"]],
+            index=selected_priority_idx,
+            key="priority_selector",
+            help="0% = Gentle/Slow | 100% = Fast/High Heat"
+        )
+        selected_priority_idx = results["priorities"].index(float(selected_priority.strip('%')) / 100)
+
+    with col_towel:
+        selected_towel = st.selectbox(
+            "💧 Towel-Dry Level",
+            options=[f"{int(t)}% Wetness" for t in results["towel_levels"]],
+            index=selected_towel_idx,
+            key="towel_selector",
+            help="Remaining wetness after towel drying"
+        )
+        selected_towel_idx = results["towel_levels"].index(int(selected_towel.split('%')[0]))
+
+    # Update selected result based on user selection
+    result_idx = selected_priority_idx * len(results["towel_levels"]) + selected_towel_idx
+    selected_result = results["all_results"][result_idx]
+
+    # Store in session state for persistence
+    st.session_state.selected_priority_idx = selected_priority_idx
+    st.session_state.selected_towel_idx = selected_towel_idx
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Instructions
 with st.expander("ℹ️ How to use"):
