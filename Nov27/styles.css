@@ -348,15 +348,19 @@ button:disabled {
     border: none;
     color: var(--color-primary);
     cursor: pointer;
-    font-size: 14px;
-    margin: 0 0 0 8px;
+    font-size: 12px;
+    margin: 0;
     padding: 0;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     opacity: 0.7;
     transition: opacity 0.2s;
+    height: auto;
+    min-height: auto;
+    line-height: 1;
 }
 
 .info-button:hover {

@@ -210,14 +210,18 @@ with col_location:
 
 with col_thickness:
     st.markdown('<div class="input-group minimal-input">', unsafe_allow_html=True)
-    hair_type = st.selectbox("Hair Thickness", ["Fine", "Medium", "Thick"], index=1, label_visibility="visible", key="thickness_input")
-    hair_type = hair_type.lower()
+    hair_type_opt = st.selectbox("Hair Thickness (feel an individual strand)", 
+        ["Fine (hard to see and feel)", "Medium (visible but not coarse)", "Thick (strong and sturdy)"], 
+        index=1, label_visibility="visible", key="thickness_input")
+    hair_type = hair_type_opt.split(" ")[0].lower()
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_porosity:
     st.markdown('<div class="input-group minimal-input">', unsafe_allow_html=True)
-    porosity = st.selectbox("Hair Porosity", ["Low", "Normal", "High"], index=1, label_visibility="visible", key="porosity_input")
-    porosity = porosity.lower() if porosity != "Normal" else "normal"
+    porosity_opt = st.selectbox("Hair Porosity (drop strand in water 3–5 min)", 
+        ["Low (floats, repels water, dries slow)", "Normal (sinks slowly)", "High (sinks fast, dries fast, may frizz)"], 
+        index=1, label_visibility="visible", key="porosity_input")
+    porosity = porosity_opt.split(" ")[0].lower()
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_button:
@@ -597,21 +601,7 @@ if "results" in st.session_state:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Instructions
-with st.expander("ℹ️ How to use"):
-    st.markdown("""
-    **📊 Cost Chart:**
-    - **X-axis**: Time priority (0%=Gentle/slower, 100%=Fast/higher heat)
-    - **Y-axis**: Energy cost in €
-    - **Colors**: Towel-dry levels (50%, 65%, 80% wetness remaining)
-    
-    **🎯 Lowest cost settings highlighted**
-    
-    **💡 Tips:**
-    - Lower towel-dry levels (more towel drying) = lower energy cost
-    - Higher priority (faster) = higher energy cost
-    - Environment conditions affect drying time significantly
-    """)
+
 
 st.markdown("---")
-st.markdown("*Powered by Open-Meteo weather API & real-time energy calculations*")
+st.markdown("*Powered by Open-Meteo weather API, REE electricity prices (Spain), & regional energy rates*")
