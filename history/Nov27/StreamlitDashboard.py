@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="Hair Dryer Assistant", layout="wide")
 
 # Load external CSS
-with open("/Users/para/Desktop/automation/Nov27/styles.css") as css_file:
+with open("/Users/para/Desktop/automation/history/Nov27/styles.css") as css_file:
     st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
 # Helper functions - MUST be defined before use

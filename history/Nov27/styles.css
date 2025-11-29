@@ -1,0 +1,712 @@
+:root {
+    --color-cream-50: rgba(252, 252, 249, 1);
+    --color-cream-100: rgba(255, 255, 253, 1);
+    --color-gray-200: rgba(245, 245, 245, 1);
+    --color-slate-500: rgba(98, 108, 113, 1);
+    --color-slate-900: rgba(19, 52, 59, 1);
+    --color-teal-500: rgba(33, 128, 141, 1);
+    --color-teal-600: rgba(29, 116, 128, 1);
+    --color-teal-700: rgba(26, 104, 115, 1);
+    --color-brown-600-rgb: 94, 82, 64;
+    --color-teal-500-rgb: 33, 128, 141;
+    --color-background: var(--color-cream-50);
+    --color-surface: var(--color-cream-100);
+    --color-text: var(--color-slate-900);
+    --color-text-secondary: var(--color-slate-500);
+    --color-primary: var(--color-teal-500);
+    --color-primary-hover: var(--color-teal-600);
+    --color-primary-active: var(--color-teal-700);
+    --color-border: rgba(var(--color-brown-600-rgb), 0.25);
+    --color-divider: rgba(var(--color-brown-600-rgb), 0.15);
+    --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --space-2: 2px;
+    --space-4: 4px;
+    --space-6: 6px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-20: 20px;
+    --space-24: 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-charcoal-700: rgba(31, 33, 33, 1);
+        --color-charcoal-800: rgba(38, 40, 40, 1);
+        --color-gray-300: rgba(167, 169, 169, 1);
+        --color-teal-300: rgba(50, 184, 198, 1);
+        --color-teal-400: rgba(45, 166, 178, 1);
+        --color-teal-800: rgba(41, 150, 161, 1);
+        --color-gray-400-rgb: 119, 124, 124;
+        --color-teal-300-rgb: 50, 184, 198;
+        --color-background: var(--color-charcoal-700);
+        --color-surface: var(--color-charcoal-800);
+        --color-text: var(--color-gray-200);
+        --color-text-secondary: rgba(var(--color-gray-300), 0.7);
+        --color-primary: var(--color-teal-300);
+        --color-primary-hover: var(--color-teal-400);
+        --color-primary-active: var(--color-teal-800);
+        --color-border: rgba(var(--color-gray-400-rgb), 0.35);
+        --color-divider: rgba(var(--color-gray-400-rgb), 0.2);
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family-base);
+    margin: 0;
+    padding: var(--space-4) var(--space-8);
+    background: var(--color-background);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Streamlit main container */
+.main {
+    max-width: 1200px;
+    margin: 0 auto !important;
+}
+
+h1 {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 0;
+    padding: 0;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+h2 {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 var(--space-8) 0;
+    color: var(--color-text);
+}
+
+/* Section divider */
+.section {
+    padding: var(--space-8) 0;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.section:last-child {
+    border-bottom: none;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-24);
+    margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+    .row.two-col {
+        grid-template-columns: 1fr 1fr;
+    }
+    .row.two-col-uneven {
+        grid-template-columns: 1fr 1.5fr;
+    }
+}
+
+.form-group {
+    margin-bottom: var(--space-8);
+}
+
+label {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+input, select {
+    width: 100%;
+    padding: var(--space-2) 0;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text);
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-bottom-color: var(--color-primary);
+}
+
+/* Minimal input styles for inline layout */
+.minimal-input input,
+.minimal-input select {
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Title row with inline inputs */
+.title-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-16);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-divider);
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+}
+
+.title-row h1 {
+    flex-shrink: 0;
+}
+
+.title-row .input-group {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-6);
+    flex-shrink: 0;
+}
+
+.title-row label {
+    margin: 0;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+.title-row input,
+.title-row select {
+    min-width: 120px;
+    width: auto;
+}
+
+button {
+    width: 100%;
+    padding: var(--space-6) var(--space-12);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-base);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: var(--color-primary-hover);
+}
+
+button:active {
+    background: var(--color-primary-active);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.results {
+    display: none;
+}
+
+.results.visible {
+    display: block;
+}
+
+.result-section {
+    margin-bottom: var(--space-12);
+}
+
+.result-section h2 {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 0 0 var(--space-8) 0;
+    padding-bottom: var(--space-4);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-6) 0;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.result-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Phase section borders */
+.phase-section {
+    border-bottom: 1px solid var(--color-divider) !important;
+    margin-bottom: var(--space-8) !important;
+    padding-bottom: var(--space-6) !important;
+}
+
+/* Override Streamlit's stMarkdown for phase sections */
+.stMarkdown .phase-section {
+    border-bottom: 1px solid var(--color-divider) !important;
+    margin-bottom: var(--space-8) !important;
+    padding-bottom: var(--space-6) !important;
+}
+
+/* Allow phase labels to wrap */
+.phase-section .result-label {
+    white-space: normal !important;
+    word-break: break-word;
+}
+
+.result-label {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.result-value {
+    font-weight: 600;
+    color: var(--color-text);
+    text-align: right;
+}
+
+.warning {
+    background: transparent;
+    border-left: 2px solid rgba(249, 115, 22, 0.6);
+    padding: var(--space-6) var(--space-8);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-text);
+}
+
+.info {
+    background: transparent;
+    border-left: 2px solid var(--color-primary);
+    padding: var(--space-6) var(--space-8);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-text);
+}
+
+.error {
+    color: #f97316;
+    margin-top: var(--space-8);
+    font-size: 12px;
+}
+
+.loading {
+    text-align: center;
+    padding: var(--space-20);
+}
+
+.chart-container {
+    position: relative;
+    height: 280px;
+    margin-bottom: var(--space-8);
+    overflow: hidden;
+}
+
+.recommended-badge {
+    display: inline-block;
+    background: transparent;
+    border-left: 3px solid var(--color-primary);
+    padding: var(--space-4) var(--space-8);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.info-button {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    height: auto;
+    min-height: auto;
+    line-height: 1;
+}
+
+.info-button:hover {
+    background: none;
+    opacity: 1;
+}
+
+/* Streamlit secondary button styling for info buttons */
+[class*="st-emotion-cache"] button {
+    background: none !important;
+    border: none !important;
+    color: var(--color-primary) !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+[class*="st-emotion-cache"] button:hover {
+    background: none !important;
+    opacity: 0.8 !important;
+}
+
+.phase-details {
+    display: none;
+    padding: var(--space-6) var(--space-8);
+    background: transparent;
+    border-left: 2px solid var(--color-divider);
+    margin-top: var(--space-4);
+    margin-left: var(--space-8);
+    font-size: 12px;
+}
+
+.phase-details.visible {
+    display: block;
+}
+
+.phase-detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-2) 0;
+}
+
+.phase-detail-item:first-child {
+    padding-top: 0;
+}
+
+.phase-detail-label {
+    color: var(--color-text-secondary);
+}
+
+.phase-detail-value {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.result-item.disabled {
+    opacity: 0.5;
+}
+
+.result-label.disabled {
+    color: var(--color-text-secondary);
+}
+
+.selection-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12);
+    margin-top: var(--space-12);
+    padding-top: var(--space-12);
+    border-top: 1px solid var(--color-divider);
+}
+
+@media (max-width: 768px) {
+    .selection-controls {
+        grid-template-columns: 1fr;
+    }
+}
+
+.selection-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+/* Inline form group - label and input side by side */
+.stColumns > div {
+    min-width: 0;
+}
+
+.form-group.inline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    min-width: 0;
+}
+
+.form-group.inline label {
+    flex-shrink: 0;
+    margin-bottom: 0;
+    white-space: nowrap;
+    font-size: 12px;
+    padding-right: var(--space-2);
+}
+
+.form-group.inline input,
+.form-group.inline select {
+    flex: 1;
+    min-width: 100px;
+    width: auto;
+}
+
+.form-group.inline .info-button {
+    margin: 0;
+    flex-shrink: 0;
+    padding: 2px 4px;
+    font-size: 12px;
+    min-width: 24px;
+}
+
+@media (max-width: 480px) {
+    .form-group.inline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-group.inline label {
+        width: 100%;
+        padding-right: 0;
+        margin-bottom: var(--space-4);
+    }
+    
+    .form-group.inline input,
+    .form-group.inline select {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .form-group.inline .info-button {
+        margin-left: var(--space-4);
+        align-self: flex-start;
+    }
+}
+
+.selection-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 0;
+}
+
+.selection-group select {
+    padding: var(--space-8) var(--space-12);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+    .warning {
+        border-left-color: rgba(249, 115, 22, 0.7);
+    }
+    .info {
+        border-left-color: var(--color-primary);
+    }
+}
+
+/* Streamlit-specific overrides */
+.stButton > button {
+    width: 100%;
+    padding: var(--space-8) var(--space-12);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.stButton > button:hover {
+    background: var(--color-primary-hover);
+}
+
+.stSelectbox {
+    margin-bottom: var(--space-8);
+}
+
+.stExpander {
+    background: transparent;
+    border-top: 1px solid var(--color-divider);
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.stExpander > div:first-child > button {
+    padding: var(--space-8) 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Title styling */
+.stTitle > h1 {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: var(--space-4);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Input styling - minimal bottom-border style */
+.stTextInput > div > div > input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+    border-radius: 0;
+    padding: var(--space-2) 0;
+    font-size: 12px;
+}
+
+.stTextInput > div > div > input:focus {
+    border-bottom-color: var(--color-primary);
+    box-shadow: none;
+    outline: none;
+}
+
+.stSelectbox > div > div > div {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    padding: var(--space-2) 0;
+}
+
+.stSelectbox > div > div > div:focus-within {
+    border-bottom-color: var(--color-primary);
+    box-shadow: none;
+}
+
+/* Label styling for minimal inputs */
+.stTextInput > label,
+.stSelectbox > label {
+    font-size: 11px !important;
+    color: var(--color-text-secondary) !important;
+    font-weight: 500 !important;
+    margin-bottom: var(--space-2) !important;
+}
+
+/* Column spacing */
+.stColumns > div > div {
+    gap: var(--space-20);
+}
+
+/* Plotly chart styling */
+.stPlotlyChart {
+    margin-bottom: var(--space-8);
+}
+
+/* Block container padding */
+.main .block-container {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+    padding-top: 0 !important;
+}
+
+/* Remove top padding from stMainBlockContainer at all screen widths */
+.stMainBlockContainer.block-container {
+    padding-top: 0 !important;
+}
+
+[class*="st-emotion-cache"] .block-container {
+    padding-top: 0 !important;
+}
+
+/* Markdown styling for cards */
+.stMarkdown {
+    color: inherit;
+}
+
+/* Override all Streamlit heading styles */
+h1, h2, h3, h4, h5, h6 {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+h1 {
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Streamlit markdown headings */
+.stMarkdown h1, 
+.stMarkdown h2, 
+.stMarkdown h3, 
+.stMarkdown h4, 
+.stMarkdown h5, 
+.stMarkdown h6 {
+    font-size: 12px !important;
+}
+
+.stMarkdown h1 {
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.stMarkdown h2 {
+    font-weight: 600 !important;
+}
+
+/* Override Streamlit cache classes */
+[class*="st-emotion-cache"] h1,
+[class*="st-emotion-cache"] h2,
+[class*="st-emotion-cache"] h3,
+[class*="st-emotion-cache"] h4,
+[class*="st-emotion-cache"] h5,
+[class*="st-emotion-cache"] h6 {
+    font-size: 12px !important;
+}
+
+/* Streamlit title elements */
+.stTitle h1,
+.stHeader h1,
+.stSubheader h2 {
+    font-size: 12px !important;
+}
+
+/* All text should be 12px - universal override */
+* {
+    font-size: 12px !important;
+}
+
+/* Preserve specific structural styles but not font size */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700 !important;
+}
+
+/* Override Streamlit container styling */
+.st-ba {
+    height: auto !important;
+}
+
+.st-b7 {
+    background-color: transparent !important;
+}
