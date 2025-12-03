@@ -10,6 +10,7 @@ import logging
 import threading
 import sys
 import random
+import os
 
 # DEMO MODE: Set to 1 to divide protocol durations by 10 (for testing)
 DEMO_MODE = 1
@@ -140,6 +141,7 @@ def fetch_protocol(
     protocol = None
     try:
         import requests
+        api_url = os.getenv("API_URL", "http://127.0.0.1:8000/protocol")
         params = {
             "temp": temp,
             "humidity": humidity,
@@ -151,7 +153,7 @@ def fetch_protocol(
             "current_threshold": current_threshold,
         }
             
-        response = requests.get("http://127.0.0.1:8000/protocol", params=params, timeout=5)
+        response = requests.get(api_url, params=params, timeout=5)
         if response.status_code == 200:
             protocol = response.json()
             print(f"✅ Protocol received: {protocol}")
