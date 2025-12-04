@@ -31,33 +31,53 @@ class SerialBoard:
 
     def connect(self):
         try:
+            ports_to_try = []
+            
             if self.port is None:
-                ports = [p.device for p in serial.tools.list_ports.comports()]
-                if ports:
-                    self.port = ports[-1]
-                    logger.info(f"Found ports: {ports}, selecting {self.port}")
+                all_ports = [p.device for p in serial.tools.list_ports.comports()]
+                if all_ports:
+                    logger.info(f"Found ports: {all_ports}")
+                    ports_to_try = all_ports
                 else:
                     logger.warning("No serial ports found")
                     return False
-            
-            self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-            time.sleep(2)
-            
-            # ✅ CRITICAL: Test Arduino handshake
-            self.ser.write(b'PING\r\n')  # Send test command
-            time.sleep(0.5)
-            
-            if self.ser.in_waiting > 0:
-                response = self.ser.readline().decode().strip()
-                if "OK" in response or "PONG" in response:
-                    logger.info(f"✅ Arduino verified on {self.port}: {response}")
-                    return True
             else:
-                logger.warning(f"No response from {self.port} - not Arduino?")
+                ports_to_try = [self.port]
             
-            # No response - close and fail
-            self.ser.close()
-            self.ser = None
+            # Try each port
+            for port in ports_to_try:
+                try:
+                    logger.info(f"Attempting connection to {port}...")
+                    self.ser = serial.Serial(port, self.baudrate, timeout=self.timeout)
+                    time.sleep(2)  # ESP32 needs time to initialize serial connection
+                    
+                    # Try PING handshake (non-critical)
+                    try:
+                        self.ser.write(b'PING\r\n')
+                        time.sleep(0.5)
+                        
+                        if self.ser.in_waiting > 0:
+                            response = self.ser.readline().decode().strip()
+                            if "OK" in response or "PONG" in response:
+                                logger.info(f"✅ Arduino verified on {port}: {response}")
+                                self.port = port
+                                return True
+                    except:
+                        pass
+                    
+                    # Even without PING response, if port opened successfully, use it
+                    logger.warning(f"Connected to {port} but no handshake response - assuming Arduino")
+                    self.port = port
+                    return True
+                    
+                except Exception as port_error:
+                    logger.debug(f"Failed to connect to {port}: {port_error}")
+                    if self.ser:
+                        self.ser.close()
+                    self.ser = None
+                    continue
+            
+            logger.error(f"Could not connect to any port: {ports_to_try}")
             return False
             
         except Exception as e:
@@ -104,6 +124,8 @@ class SerialBoard:
             return False
         try:
             self.ser.write(command.encode())
+            self.ser.flush()  # Wait for transmission to complete
+            time.sleep(0.2)  # Give ESP32 time to process
             return True
         except Exception as e:
             logger.error(f"Failed to send command: {e}")
@@ -232,7 +254,8 @@ def main():
     )
 
     # 1. Connect Arduino
-    serial_board = SerialBoard()
+    port = sys.argv[1] if len(sys.argv) > 1 else None
+    serial_board = SerialBoard(port=port)
     arduino_ok = serial_board.connect()
     if arduino_ok:
         logger.info("✅ Arduino connected")
@@ -286,6 +309,12 @@ def main():
                     # No data yet, wait a bit
                     time.sleep(0.1)
                     continue
+                
+                # Match simulation mode: check safety every 5 seconds (Arduino output interval)
+                time_until_next = data_interval - (time.time() - last_data_time)
+                if time_until_next > 0:
+                    time.sleep(time_until_next)
+                last_data_time = time.time()
 
             # Check for safety violations
             violated = strategy.check_violations(temp, current)
