@@ -1,0 +1,119 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{float}
+
+% Set line spacing
+\onehalfspacing
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\thepage}
+\lhead{Final Project Report}
+
+\title{Final Project Report Template}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Write a concise summary of the project: problem, approach, prototype, results, and key takeaway.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\subsection{Background \& Motivation}
+Explain the context and the problem.
+
+\subsection{Project Goals}
+State the objectives of your project.
+
+\section{Project Description \& Workflow}
+
+\subsection{Problem Statement}
+Describe the problem you are addressing.
+
+\subsection{Overview of the Proposed Solution}
+Provide an overview of your solution and operating principles.
+
+\subsection{Workflow Diagram / System Flow}
+Insert a diagram showing data flow, sensors, control logic, etc.
+
+\begin{figure}[H]
+\centering
+\caption{System workflow diagram}
+\end{figure}
+
+\section{Prototype Development --- Hardware}
+
+Datasheet and description of the load of choice.
+
+Describe hardware choices, ESP32 wiring, sensors used, rationale, and calibration steps.
+
+\begin{figure}[H]
+\centering
+\caption{Hardware configuration}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\caption{Circuit diagram}
+\end{figure}
+
+\section{Prototype Development --- Software}
+
+External API? What are the data sources? etc.
+
+Explain software architecture, data handling, control logic. Include block diagrams or pseudocode if it helps explaining.
+
+\begin{figure}[H]
+\centering
+\caption{Software architecture diagram}
+\end{figure}
+
+\section{Testing and Validation Iterations}
+
+Testing/calibration of the sensors/hypothesis validation procedures.
+
+\section{Results}
+
+Present findings, performance metrics, savings, potential improvements, visualizations, etc.
+
+\begin{figure}[H]
+\centering
+\caption{Performance metrics}
+\end{figure}
+
+\section{Conclusion}
+
+Summarize accomplishments, main takeaways, strengths, weaknesses.
+
+\section{References}
+
+List datasheets, tutorials, libraries, research papers, and other resources used.
+
+\begin{thebibliography}{99}
+\bibitem{label1} Author, ``Title,'' Journal, Year.
+\end{thebibliography}
+
+\newpage
+\appendix
+\section{Appendices}
+
+Include schematics, extended data, code snippets, etc.
+
+\subsection{Schematic Diagrams}
+
+\subsection{Code Snippets}
+
+\end{document}
