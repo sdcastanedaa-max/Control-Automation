@@ -19,8 +19,8 @@ class SafetyStrategy:
         self.start_time = time.time() * 1000
         self.relay_state = True
     
-    def check_violations(self, temp: float, current: float) -> bool:
-        """Returns True if safety violation → shutdown relay"""
+    def check_violations(self, temp: float, current: float) -> dict:
+        """Returns dict with violation info or None if no violation"""
         now_ms = time.time() * 1000
         
         for cond in self.conditions:
@@ -40,7 +40,13 @@ class SafetyStrategy:
                         cond['violation_count'] += 1
                         print(f"  🚨 VIOLATION CONFIRMED: {cond['sensor']} exceeded for {cond['duration_ms']/1000:.0f}s")
                         logger.warning(f"🚨 VIOLATION: {cond['sensor']} {value:.1f} > {cond['threshold']} for {cond['duration_ms']/1000}s")
-                        return True
+                        return {
+                            'violated': True,
+                            'sensor': cond['sensor'],
+                            'value': value,
+                            'threshold': cond['threshold'],
+                            'duration_s': cond['duration_ms'] / 1000
+                        }
             else:
                 if cond['triggered_at'] is not None:
                     print(f"  ✓ {cond['sensor'].upper()} recovered: {value:.1f} < {cond['threshold']} (timer reset)")
@@ -50,9 +56,15 @@ class SafetyStrategy:
         if runtime_ms > self.max_runtime_ms:
             print(f"  ⏰ Max runtime exceeded: {runtime_ms/1000:.0f}s > {self.max_runtime_ms/1000:.0f}s")
             logger.warning("⏰ Max runtime exceeded")
-            return True
+            return {
+                'violated': True,
+                'sensor': 'runtime',
+                'value': runtime_ms / 1000,
+                'threshold': self.max_runtime_ms / 1000,
+                'duration_s': None
+            }
         
-        return False
+        return {'violated': False}
     
     def get_status(self) -> Dict:
         """Debug status report"""

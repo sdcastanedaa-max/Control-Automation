@@ -318,12 +318,12 @@ def calculate_protocol(
             {
                 "sensor_type": "temperature",
                 "threshold": round(temp_threshold, 2),
-                "duration_ms": bulk_duration_ms
+                "duration_ms": total_duration_ms
             },
             {
                 "sensor_type": "current",
                 "threshold": round(current_threshold, 2),
-                "duration_ms": total_duration_ms
+                "duration_ms": bulk_duration_ms
             }
         ],
         "max_total_runtime_ms": 1800000,  # 30 minutes default

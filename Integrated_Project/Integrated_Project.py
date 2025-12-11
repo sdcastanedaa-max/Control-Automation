@@ -230,7 +230,7 @@ def main():
     porosity_input = input("Hair porosity (low/normal/high) [default: normal]: ").strip().lower() or "normal"
     
     # Fixed safety thresholds based on sensor placement and hairdryer power usage
-    temp_threshold = 80.0
+    temp_threshold = 40.0
     current_threshold = 5.0
     
     print(f"\n📊 Inputs: {hair_type_input} hair, {porosity_input} porosity, {location_input}")
@@ -283,48 +283,85 @@ def main():
     # Arduino timing: 250 RMS samples × 20ms per RMS = 5000ms (5 seconds) per output
     # DEMO_MODE only affects protocol durations, not sensor data frequency
     data_interval = 5.0
-    last_data_time = time.time()
-    i = 0
     
     try:
         while True:
-            if not arduino_ok:
-                # Simulation: sleep until next data point
-                time_until_next = data_interval - (time.time() - last_data_time)
-                if time_until_next > 0:
-                    time.sleep(time_until_next)
-                
-                current_time = time.time()
-                temp = 65 + (i % 8) * 3 + random.uniform(-1, 1)
-                current = 5 + (i % 5) * 0.4 + random.uniform(-0.1, 0.1)
-                last_data_time = current_time
-                i += 1
-                # Print in Arduino format (matches real hardware output)
-                print(f"Temperature: {temp:.2f} | Current: {current:.5f}")
-            else:
-                # Real Arduino: get latest data
-                temp = serial_board.latest_temp
-                current = serial_board.latest_current
-                if temp == 0 and current == 0:
-                    # No data yet, wait a bit
-                    time.sleep(0.1)
-                    continue
-                
-                # Match simulation mode: check safety every 5 seconds (Arduino output interval)
-                time_until_next = data_interval - (time.time() - last_data_time)
-                if time_until_next > 0:
-                    time.sleep(time_until_next)
-                last_data_time = time.time()
-
-            # Check for safety violations
-            violated = strategy.check_violations(temp, current)
+            last_data_time = time.time()
+            i = 0
             
-            if violated and strategy.relay_state:
-                if arduino_ok:
-                    serial_board.send_command('L')
-                strategy.relay_state = False
-                print(f"🛑 SAFETY SHUTDOWN! (T:{temp:.1f}°C exceeds {temp_threshold}°C or I:{current:.2f}A exceeds {current_threshold}A)")
-                break
+            # Inner loop for each session (can restart after shutdown)
+            shutdown = False
+            while not shutdown:
+                if not arduino_ok:
+                    # Simulation: sleep until next data point
+                    time_until_next = data_interval - (time.time() - last_data_time)
+                    if time_until_next > 0:
+                        time.sleep(time_until_next)
+                    
+                    current_time = time.time()
+                    temp = 65 + (i % 8) * 3 + random.uniform(-1, 1)
+                    current = 5 + (i % 5) * 0.4 + random.uniform(-0.1, 0.1)
+                    last_data_time = current_time
+                    i += 1
+                    # Print in Arduino format (matches real hardware output)
+                    print(f"Temperature: {temp:.2f} | Current: {current:.5f}")
+                else:
+                    # Real Arduino: get latest data
+                    temp = serial_board.latest_temp
+                    current = serial_board.latest_current
+                    if temp == 0 and current == 0:
+                        # No data yet, wait a bit
+                        time.sleep(0.1)
+                        continue
+                    
+                    # Match simulation mode: check safety every 5 seconds (Arduino output interval)
+                    time_until_next = data_interval - (time.time() - last_data_time)
+                    if time_until_next > 0:
+                        time.sleep(time_until_next)
+                    last_data_time = time.time()
+
+                # Check for safety violations
+                violation = strategy.check_violations(temp, current)
+                
+                if violation['violated'] and strategy.relay_state:
+                    if arduino_ok:
+                        serial_board.send_command('L')
+                    strategy.relay_state = False
+                    shutdown = True
+                    
+                    # Display violation details with user-friendly messages
+                    print("\n" + "="*50)
+                    if violation['sensor'] == 'runtime':
+                        print(f"🛑 SAFETY SHUTDOWN!")
+                        print(f"   Reason: Max runtime exceeded ({violation['value']:.0f}s > {violation['threshold']:.0f}s)")
+                    elif violation['sensor'] == 'current':
+                        print(f"🛑 SAFETY SHUTDOWN!")
+                        print(f"   Reason: You used too long the high heat mode in your hairdryer")
+                        print(f"   Duration exceeded: {violation['duration_s']:.0f}s (Threshold: {violation['duration_s']:.0f}s)")
+                    else:  # temperature
+                        print(f"🛑 SAFETY SHUTDOWN!")
+                        print(f"   Reason: You used too long the total hairdrying duration")
+                        print(f"   Duration exceeded: {violation['duration_s']:.0f}s (Threshold: {violation['duration_s']:.0f}s)")
+                    
+                    # Prompt user to restart
+                    print("="*50)
+                    while True:
+                        restart = input("Restart process? (yes/no): ").strip().lower()
+                        if restart in ['yes', 'y']:
+                            print("\n🔄 Restarting...\n")
+                            # Reset strategy and relay for new session
+                            strategy = SafetyStrategy(protocol)
+                            if arduino_ok:
+                                serial_board.send_command('H')
+                            strategy.relay_state = True
+                            print("🔌 Relay ON\n")
+                            break
+                        elif restart in ['no', 'n']:
+                            print("✋ Exiting...")
+                            raise KeyboardInterrupt
+                        else:
+                            print("Please enter 'yes' or 'no'")
+                    break  # Exit inner loop to restart
 
     except KeyboardInterrupt:
         print("\n🛑 Stopped")
