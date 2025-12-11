@@ -24,8 +24,10 @@ from protocol_calculator import (
 st.set_page_config(page_title="Hair Dryer Assistant", layout="wide")
 
 # Load external CSS
-with open("/Users/para/Desktop/automation/history/Nov27/styles.css") as css_file:
-    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
+css_path = os.path.join(os.path.dirname(__file__), "styles.css")
+if os.path.exists(css_path):
+    with open(css_path) as css_file:
+        st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
 # Helper functions - MUST be defined before use
 def calculate_recommendations(temp, humidity, hair_type, porosity, towel_level, time_priority):

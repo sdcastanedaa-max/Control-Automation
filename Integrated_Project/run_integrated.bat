@@ -16,5 +16,5 @@ echo Dashboard: %DASHBOARD_URL%
 echo Using API_URL: %API_URL%
 python -m pip install -q pyserial requests 2>nul
 
-python Integrated_Project.py
+python Integrated_Project.py COM7
 pause
