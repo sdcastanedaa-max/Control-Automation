@@ -230,7 +230,7 @@ def main():
     porosity_input = input("Hair porosity (low/normal/high) [default: normal]: ").strip().lower() or "normal"
     
     # Fixed safety thresholds based on sensor placement and hairdryer power usage
-    temp_threshold = 40.0
+    temp_threshold = 38.0
     current_threshold = 5.0
     
     print(f"\n📊 Inputs: {hair_type_input} hair, {porosity_input} porosity, {location_input}")
