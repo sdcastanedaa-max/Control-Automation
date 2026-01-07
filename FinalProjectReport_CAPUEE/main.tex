@@ -11,6 +11,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{cite}
+\usepackage{tikz}
 
 % -------------------- Title Info --------------------
 \title{Control \& Automation for the Efficient Use of Energy\\(CAPUEE 25--26)}
@@ -222,7 +223,7 @@ Basic validation of the temperature measurement was performed by comparing senso
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\linewidth]{figures/LM35_TemperatureChain_Schematic}
+  % \includegraphics[width=0.8\linewidth]{figures/LM35_TemperatureChain_Schematic}
   \caption{Close-up schematic of the LM35 temperature measurement chain and ESP32 ADC connection.}
   \label{fig:lm35_chain}
 \end{figure}
@@ -237,7 +238,7 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\linewidth]{figures/Actuation_LED_Relay_Schematic}
+  % \includegraphics[width=0.8\linewidth]{figures/Actuation_LED_Relay_Schematic}
   \caption{Close-up schematic of the relay cutoff and blue LED module actuation circuitry controlled by the ESP32.}
   \label{fig:actuation_chain}
 \end{figure}
@@ -261,26 +262,135 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
 
 \begin{figure}[H]
   \centering
-  %TikZ/PGF and PGFPLOTS
-  \caption{Software schematic of the prototype.}
+  \begin{tikzpicture}[
+    node distance=1.5cm and 2cm,
+    box/.style={rectangle, draw, fill=blue!10, text width=3cm, align=center, rounded corners, minimum height=1cm},
+    api/.style={rectangle, draw, fill=green!10, text width=2.8cm, align=center, rounded corners, minimum height=1cm},
+    sensor/.style={rectangle, draw, fill=orange!10, text width=2.5cm, align=center, rounded corners, minimum height=0.8cm},
+    arrow/.style={->, >=stealth, thick}
+  ]
+
+    % Top layer - External APIs
+    \node[api] (openmeteo) at (0,0) {Open-Meteo API\\(Weather Data)};
+    \node[api] (ree) at (3.5,0) {REE API\\(Electricity Price)};
+
+    % Second layer - Dashboard
+    \node[box, fill=cyan!10] (dashboard) at (1.75,-2) {Streamlit\\Dashboard\\(UI)};
+
+    % Third layer - API Layer
+    \node[box, fill=green!20] (fastapi) at (1.75,-3.8) {FastAPI\\Protocol API\\(:8000)};
+
+    % Fourth layer - Calculation Module
+    \node[api] (calculator) at (1.75,-5.5) {Protocol\\Calculator};
+
+    % Fifth layer - Main Control
+    \node[box, fill=blue!20, text width=3.5cm] (mainpy) at (1.75,-7.5) {Main Control\\(Integrated\_Project.py)};
+
+    % Sixth layer - Safety Strategy
+    \node[api, text width=2.5cm] (safety) at (5.5,-7.5) {Safety\\Strategy};
+
+    % Bottom layer - Arduino
+    \node[box, fill=orange!20] (arduino) at (1.75,-9.5) {ESP32 Arduino\\(Firmware)};
+
+    % Sensors
+    \node[sensor] (temp) at (-1,-11) {LM35\\Temp Sensor};
+    \node[sensor] (current) at (4.5,-11) {ACS712\\Current Sensor};
+
+    % Actuator
+    \node[sensor, fill=red!10] (relay) at (1.75,-11.5) {Relay\\(Load Control)};
+
+    % Arrows - Data flow
+    \draw[arrow] (openmeteo) -- (dashboard);
+    \draw[arrow] (ree) -- (dashboard);
+    \draw[arrow] (dashboard) -- node[right, font=\tiny] {user inputs} (fastapi);
+    \draw[arrow] (fastapi) -- node[right, font=\tiny] {GET /protocol} (calculator);
+    \draw[arrow] (calculator) -- (mainpy);
+    \draw[arrow] (mainpy) -- node[above, font=\tiny] {check violations} (safety);
+    \draw[arrow] (safety) -- (mainpy);
+    \draw[arrow] (mainpy) -- node[right, font=\tiny] {Serial (115200 baud)} (arduino);
+    \draw[arrow] (arduino) -- node[left, font=\tiny] {sensor data (5s)} (mainpy);
+    \draw[arrow] (temp) -- (arduino);
+    \draw[arrow] (current) -- (arduino);
+    \draw[arrow] (arduino) -- node[left, font=\tiny] {H/L commands} (relay);
+
+  \end{tikzpicture}
+  \caption{Software schematic of the prototype showing data flow between modules, external APIs, sensors, and actuators.}
   \label{fig:software_schematic}
 \end{figure}
 
 \subsection{Software Architecture}
-% Explain modules/files (main, current sensor module, temp module, actuator, API, control logic, config)
+
+The software system consists of six primary modules working in a distributed architecture:
+
+\textbf{ESP32 Arduino Firmware} (\texttt{Integrated\_Project.ino}) implements the lowest-level hardware interface, reading analog sensors through an ADS1115 16-bit ADC for current measurement and the ESP32's built-in ADC for temperature. The firmware samples current at 1 kHz to calculate RMS values over 20 ms intervals, then averages 250 RMS samples to produce one filtered output every 5 seconds. It communicates via serial at 115200 baud, responding to relay control commands (`H' for high/on, `L' for low/off) and transmitting sensor readings in the format: \texttt{Temperature: XX.XX | Current: X.XXXXX}.
+
+\textbf{Main Control System} (\texttt{Integrated\_Project.py}) serves as the central coordinator, managing three key responsibilities: (1) serial communication with the ESP32 through the \texttt{SerialBoard} class, (2) protocol acquisition from the local API with user-specific parameters (hair type, porosity, environmental conditions), and (3) real-time safety monitoring by feeding sensor data to the \texttt{SafetyStrategy} module. It runs a continuous monitoring loop synchronized to the Arduino's 5-second output interval, checking for threshold violations and commanding relay shutdown when safety limits are exceeded.
+
+\textbf{Protocol API} (\texttt{mock\_protocol\_api.py}) provides a RESTful interface via FastAPI at \texttt{http://127.0.0.1:8000/protocol}, accepting query parameters including room temperature, humidity, hair type, porosity, towel-dry level, time priority, and safety thresholds. It delegates calculation logic to the protocol calculator module and returns a JSON response specifying sensor-specific thresholds (temperature and current) with corresponding duration limits.
+
+\textbf{Protocol Calculator} (\texttt{protocol\_calculator.py}) implements the core recommendation engine, calculating optimal drying parameters based on environmental factors and user characteristics. It computes a drying power index from temperature and humidity, determines appropriate heat settings (Low/Medium/High), estimates bulk and finish phase durations, and generates safety protocol thresholds. It also interfaces with external APIs to fetch real-time room conditions from Open-Meteo and electricity prices from the Spanish REE API or regional fallback values.
+
+\textbf{Safety Strategy Module} (\texttt{safety\_strategy.py}) monitors sensor readings against protocol-defined thresholds with duration-based violation detection. For each safety condition (temperature and current), it starts a timer when a threshold is exceeded and triggers a shutdown if the condition persists beyond the specified duration. It implements hysteresis by resetting timers when values return below thresholds, preventing false triggers from transient spikes.
+
+\textbf{Streamlit Dashboard} (\texttt{StreamlitDashboard.py}) provides a web-based user interface for inputting location, hair characteristics (type and porosity), and viewing personalized drying protocols. It displays environmental conditions, recommended drying phases (towel-dry, optional air-dry, bulk heat, and finish), total time estimates, and energy cost analysis across multiple time-priority and towel-dry level combinations. The dashboard visualizes cost trade-offs through interactive charts, helping users select optimal drying strategies.
 
 \subsection{Data Streams and Sources}
-% Which API, what endpoint, update frequency, what fields you use (price, timestamp), failure handling
-% Sampling rates, buffering, timestamps, smoothing/averaging
+
+The system integrates multiple external and internal data sources with specific update frequencies and failure handling:
+
+\textbf{Open-Meteo Weather API} provides current temperature and relative humidity for user-specified locations through two endpoints: (1) geocoding API (\texttt{https://geocoding-api.open-meteo.com/v1/search}) converts city names to coordinates, and (2) forecast API (\texttt{https://api.open-meteo.com/v1/forecast}) returns current weather with \texttt{temperature\_2m} and \texttt{relative\_humidity\_2m} fields. Requests timeout after 5 seconds, falling back to Barcelona coordinates (41.3874°N, 2.1686°E) or default values (20°C, 60\% humidity) on failure.
+
+\textbf{REE Electricity Price API} delivers Spanish real-time electricity prices from \texttt{https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real} with hourly granularity. The system queries today's data (midnight to midnight UTC), extracts the current hour's price in €/MWh, and converts to €/kWh. For non-Spanish locations or API failures, it uses a regional price map with fallback values ranging from 0.14 (Canada) to 0.35 (Germany) €/kWh.
+
+\textbf{Arduino Sensor Data Stream} transmits temperature and current readings every 5 seconds over serial. Temperature measurements use the LM35's linear 10 mV/°C characteristic: $T = V \times 100$, where $V$ is the ADC voltage. Current measurements undergo two-stage filtering: RMS calculation over 20 ms windows (matching AC power frequency), then averaging 250 RMS samples for noise reduction. The 5-second interval balances responsiveness with computational efficiency, as the ESP32 performs $250 \times 20 = 5000$ ms of RMS integration per output.
+
+\textbf{Serial Communication Protocol} uses a simple ASCII format for bidirectional communication at 115200 baud. Commands from Python to Arduino consist of single characters (`H' for relay on, `L' for relay off, `PING' for handshake verification). Sensor data from Arduino follows the template \texttt{Temperature: XX.XX | Current: X.XXXXX}, parsed by splitting on the pipe character and extracting float values after colons. The Python \texttt{SerialBoard} class buffers incoming data in a background thread, updating \texttt{latest\_temp} and \texttt{latest\_current} attributes that the main control loop reads.
 
 \subsection{Control and Recommendation Logic}
-% Example thresholds: normal band, alert threshold, failsafe threshold + hysteresis + timers
-% How you decide “best time to run” / “avoid now” based on prices and user constraints
+
+The system implements three-tier safety thresholds with duration-based triggering and hysteresis:
+
+\textbf{Temperature Threshold Monitoring:} The protocol specifies a maximum temperature (e.g., 38°C measured at sensor location) and total duration limit based on calculated drying time. When sensor temperature exceeds threshold, \texttt{SafetyStrategy} records the violation timestamp. If temperature remains elevated for the full duration (e.g., total drying time of 4.2 minutes = 252 seconds in demo mode), the system triggers shutdown with the message "You used too long the total hairdrying duration." If temperature drops below threshold before duration expires, the timer resets, implementing hysteresis to prevent oscillation.
+
+\textbf{Current Threshold Monitoring:} High current indicates high heat mode usage on the hairdryer. The system monitors for sustained current above threshold (e.g., 5.0 A) for the bulk phase duration (e.g., 2.4 minutes). This prevents prolonged high-heat exposure that could damage hair, triggering shutdown with "You used too long the high heat mode in your hairdryer" when violated. The duration corresponds to the bulk drying phase, allowing sufficient time for the high-heat portion while preventing overuse.
+
+\textbf{Maximum Runtime Limit:} A failsafe 30-minute (1,800,000 ms) absolute runtime limit prevents indefinite operation regardless of sensor readings. This protects against sensor failures or unexpected usage patterns. In demo mode, all durations divide by 10 for faster testing (e.g., 30 minutes becomes 3 minutes).
+
+\textbf{Hysteresis Implementation:} The \texttt{SafetyStrategy.check\_violations()} method maintains per-condition state including \texttt{triggered\_at} timestamps. Violations only count when continuously exceeding thresholds for full durations. Dropping below threshold at any point resets the timer to \texttt{None}, requiring a fresh sustained violation to trigger shutdown. This design prevents false alarms from brief temperature spikes or momentary high-heat bursts during normal hair manipulation.
+
+\textbf{Recommendation Engine:} The protocol calculator determines heat settings through a multi-factor index. Starting with a hair-type baseline (fine=0, medium=1, thick=2), it adjusts for porosity (low +1, high -1), environmental drying power (DP $< 0.6$ adds +1, DP $> 1.2$ subtracts -1), and time priority (scaled by $0.5 \times (\text{priority} - 0.5)$). The final heat index, clamped to 0-2, maps to Low (50-60°C), Medium (70-80°C), or High (90-100°C) settings.
+
+Drying time calculation begins with a base bulk time:
+\begin{equation}
+t_{\text{bulk}} = \left(2 + \frac{\text{towel\_level} - 50}{25}\right) \times k_{\text{hair}} \div \left(0.5 + 0.5 \times \text{DP}\right) \div \left(1 + 0.3 \times \text{priority}\right)
+\end{equation}
+where $k_{\text{hair}} = \{0.7, 1.0, 1.4\}$ for fine/medium/thick hair. The finish time follows a similar formula with different coefficients. For favorable conditions (temp $\geq 18$\textdegree C, humidity $< 75\%$, DP $\geq 0.5$, priority $\leq 0.7$), the system recommends hybrid drying: 10-30 minutes of air drying followed by reduced blow-dry times (bulk $\times 0.6$, finish $\times 0.7$).
 
 \subsection{Details of Key Algorithms and Communications}
-% Example of an algorithm: RMS, filtering, debouncing timers
-% Brief equations or pseudocode
-% Serial logs, dashboard/Streamlit, etc.
+
+\textbf{RMS Current Calculation:} The firmware computes true RMS using numerical integration synchronized to the AC power frequency (50 Hz). For each 1 ms timestep:
+\begin{equation}
+S_{\text{RMS}} = S_{\text{RMS}} + i^2(t) \cdot \Delta t
+\end{equation}
+where $i(t) = (V_{\text{ADC}} - 1.65) \times 30$ converts the ACS712's AC-coupled voltage to current, and $\Delta t$ in seconds is tracked by the microcontroller. After accumulating 20 samples (20 ms = one AC period at 50 Hz):
+\begin{equation}
+I_{\text{RMS}} = \sqrt{f \cdot S_{\text{RMS}}}
+\end{equation}
+where $f = 50$ Hz. The factor of frequency converts the time-integrated sum to proper RMS. This method accurately captures non-sinusoidal waveforms from variable-speed hairdryer motors.
+
+\textbf{Multi-Stage Filtering:} Raw RMS values undergo moving average filtering over 250 samples to reject high-frequency noise and short-term variations:
+\begin{equation}
+I_{\text{filtered}} = \frac{1}{250} \sum_{k=0}^{249} I_{\text{RMS}}[k]
+\end{equation}
+This 5-second averaging window (250 samples $\times$ 20 ms) provides stable readings while remaining responsive to actual usage changes. Values below 0.1 A are clamped to zero to eliminate sensor offset noise.
+
+\textbf{Serial Communication Handshake:} On connection, the Python client sends \texttt{PING\string\textbackslash r\string\textbackslash n} and waits 500 ms for a response containing "OK" or "PONG". If no response arrives but the serial port opened successfully, the system assumes a valid Arduino connection and proceeds. This graceful degradation allows operation even if the Arduino firmware doesn't implement PING handling, while providing verification when available.
+
+\textbf{Automatic Port Discovery:} The \texttt{SerialBoard} class iterates through all available COM/tty ports, attempting connection to each until successful. For each port, it opens the serial connection, waits 2 seconds for ESP32 initialization (required for USB-serial enumeration), attempts handshake, and moves to the next port on failure. This eliminates manual port configuration.
+
+\textbf{Threaded Sensor Reading:} A daemon thread runs \texttt{read\_sensor\_data()} continuously, parsing incoming serial lines and updating \texttt{latest\_temp} and \texttt{latest\_current} attributes. The main control loop reads these attributes every 5 seconds, decoupling sensor I/O from safety logic. Thread synchronization relies on Python's GIL, as float assignments are atomic operations.
+
+\textbf{Demo Mode Acceleration:} Setting \texttt{DEMO\_MODE = 1} divides all protocol durations by 10 before sending to \texttt{SafetyStrategy}, allowing rapid testing (e.g., 4-minute protocols become 24 seconds). Critically, this only affects safety timeout durations, not the Arduino's sensor sampling or output rate, maintaining realistic sensor data flow during accelerated testing.
 \begin{figure}[H]
   \centering
   % \includegraphics[width=0.9\linewidth]{figures/dashboard.png}
