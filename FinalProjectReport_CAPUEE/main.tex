@@ -1,0 +1,336 @@
+\documentclass[11pt,a4paper]{article}
+
+% -------------------- Packages --------------------
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{cite}
+
+% -------------------- Title Info --------------------
+\title{Control \& Automation for the Efficient Use of Energy\\(CAPUEE 25--26)}
+\author{Bujin Shao \and Hemeng Wang \and Nai-Chi Cheng \and Saúl Daniel Castañeda Arzaga}
+\date{December 26, 2025}
+
+\begin{document}
+\maketitle
+
+% ==================================================
+\begin{abstract}
+% Concise summary: problem, approach, prototype, results, key takeaway.
+\end{abstract}
+
+\tableofcontents
+
+% ==================================================
+\newpage
+\section{Introduction}
+
+\subsection{Background \& Motivation}
+% Context + why this matters (energy efficiency, safety, user guidance, dynamic pricing, etc.)
+
+\subsection{Problem Statement \& Project Requirements}
+% What problem are you solving with the smart hair dryer?
+% Bullet list of objectives (measure current/power, measure temperature, actuation, price-aware recommendations)
+% Define what “works” means: sampling rate, RMS stability, temp thresholds, relay/LED behavior, API refresh cadence
+
+\subsection{System Overview of the Proposed Solution}
+% High-level principle: sense (current + temperature) -> decide -> actuate + recommend schedule via price API
+% Insert diagram: sensors -> ESP32 -> control logic -> actuators + data logging/UI + external API
+\begin{figure}[H]
+  \centering
+  % \includegraphics[width=0.95\linewidth]{figures/system_flow.pdf}
+  \caption{System schematic of the prototype.}
+  \label{fig:system-flow}
+\end{figure}
+
+% ==================================================
+\newpage
+\section{Prototype Development --- Hardware}
+
+\subsection{Load of Choice}
+% Hair dryer: rated power, modes, expected current range, safety considerations, measurement approach
+
+\noindent The \emph{Xiaomi High-speed Ionic Hair Dryer} Model GSHGL01LX is used as the primary electrical load. With a rated power of 1600 W at a mains voltage of 220–240 V, it is suitable for validating our sensing and control system in a household context. It is also commonplace, as one of the team members already owned the unit, simplifying setup and data collection. Specifics: \begin{itemize}
+    \item A high-speed internal motor is used for efficient airflow and drying, reflecting typical household power consumption patterns of motorized heaters.
+    \item The nominal electrical characteristics—220–240 V~ at up to 1600 W—yield a current draw of approximately 7 A at rated conditions, which is a useful range for testing the robustness of our current transformer and ADC interface.
+    \item Using a real shunt load like a hair dryer adds practical relevance to the project compared to purely resistive or artificial loads, and allows us to observe non-idealities such as inrush currents and thermal effects that occur during typical usage.
+    \item The device includes a detachable nozzle, making it a relevant choice for evaluating non-invasive current sensing and thermal monitoring for the prototype by inserting the sensors between the nozzle and the main outlet.
+\end{itemize}
+
+\begin{table}[H]
+  \hfill
+  \centering
+  \begin{minipage}[t]{0.7\textwidth}
+    \centering
+    \caption{Specifications of the Hair Dryer (Xiaomi GSHGL01LX)~\cite{xiaomi_hairdryer_specs}.}
+    \label{tab:hairdryer_specs}
+    \begin{tabular}{ll}
+      \toprule
+      Attribute & Value \\
+      \midrule
+      Model & GSHGL01LX \\
+      Rated Voltage & 220--240 V~ \\ 
+      Rated Frequency & 50--60 Hz \\ 
+      Rated Power & 1600 W \\ 
+      Product Dimensions & 128.6 × 70 × 231 mm (without nozzle) \\ 
+      Power Cord Length & 1.7 m \\ 
+      Net Weight & 406 g (without nozzle and cord) \\
+      \bottomrule
+    \end{tabular}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.2\textwidth}
+    \centering
+    \captionof{figure}{Visuals.}
+    \label{fig:hairdryer_image}
+    \includegraphics[width=0.6\linewidth]{figures/Xiaomi High-speed Ionic Hair Dryer.png}
+  \end{minipage}
+  \hfill
+  \vspace{1em}
+\end{table}
+
+
+\subsection{Electronics}
+
+
+\noindent Figure~\ref{fig:hardware_schematic} on the next page shows a schematic of the electronics of the prototype. The design integrates the mains-powered hairdryer with low-voltage sensing and control electronics, while maintaining isolation between high-voltage and low-voltage domains.
+
+\paragraph{}Specifically, the hair dryer is connected to the AC mains, passing through an analog current transformer (SCT013) for real-time, non-invasive current measurement. The sensor output is conditioned, then digitized using an analog-to-digital converter (ADS1115), which communicates with a microcontroller (FireBeetle ESP32) via an I\textsuperscript{2}C bus. A temperature sensor module (LM35) is placed near the air outlet of the hair dryer, also connected to the microcontroller. A computer (not shown) handles control logic during testing to avoid reprogramming the microcontroller, which manages sensing and actuating. Control logic is not integrated for this prototype. All low-voltage components are powered from regulated DC supplies and share a common ground, while the AC side remains physically and electrically isolated for safety.
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.6\linewidth]{figures/ACEE_HardwareSchematic.pdf}
+  \caption{Hardware schematic of the prototype.}
+  \label{fig:hardware_schematic}
+\end{figure}
+
+
+% Table of parts: ESP32 FireBeetle, SCT013, ADS1115, DS18B20, relay/LED, resistors, wiring, enclosure, etc.
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    Component & Model & Purpose \\
+    \midrule
+    Microcontroller & ESP32 FireBeetle & Control + connectivity \\
+    I/O expansion shield & Gravity & Wiring simplification \\
+    ADC module (16-bit) & ADS1115 & High-resolution sampling \\
+    Current sensor & SCT013 & Non-invasive AC current sensing \\
+    Temperature sensor module & LM35 (DFR0023) & Outlet air temperature \\
+    Digital relay module & HF3FA (DFR0473) &  Actuator: power cutoff \\
+    LED module & DFR0021-B & Actuator: user feedback \\
+    
+    \bottomrule
+  \end{tabular}
+  \caption{Bill of materials.}
+\end{table}
+
+\begin{figure}[H]
+\centering    
+    % Row 1
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/SCT013_CurrentSensor.jpeg}
+        \caption{SCT013 Current Sensor~\cite{yhdc_sct013}}
+        \label{fig:SCT013}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/ABB_SocketBox.jpg}
+        \caption{Socket box with fuse and the relay in (c)}
+        \label{fig:SocketBox}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/GravityDigital10A_Relay.jpg}
+        \caption{HF3FA Relay~\cite{dfrobot_relay_module_dfr0473}}
+        \label{fig:HF3FD}
+    \end{subfigure}
+    
+    % Row 2
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/ADS1115_16bitADCModule.jpg}
+        \caption{ADS1115 ADC~\cite{ti_ads1115}}
+        \label{fig:ADS1115}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/GravityIOExpansionShield_FirebeetleCovers.jpg}
+        \caption{I/O Expansion Shield~\cite{dfrobot_gravity_shield}}
+        \label{fig:GravityShield}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/ESP32_Microcontroller.jpg}
+        \caption{FireBeetle ESP32~\cite{dfrobot_firebeetle_esp32}}
+        \label{fig:ESP32}
+    \end{subfigure}
+    
+    % Row 3
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/LM35_TemperatureSensor.jpg}
+        \caption{LM35 Sensor~\cite{lm35}}
+        \label{fig:LM35}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[height=2.4cm, keepaspectratio]{figures/BlueLED.jpg}
+        \caption{Blue LED Module~\cite{dfrobot_led_module_dfr0021}}
+        \label{fig:LED}
+    \end{subfigure}
+    \hfill
+    \vspace{.5em}
+    \caption{Hardware components used in the experimental setup.}
+    \label{fig:hardware_components}
+\end{figure}
+
+
+\subsubsection*{Current Measurement Chain (SCT013 + Bias + ADS1115)}
+
+The load current is measured using a non-invasive SCT013 current transformer, enabling galvanic isolation between the mains-powered appliance and the low-voltage measurement electronics. The sensor is clamped around the live conductor supplying the hair dryer, producing a secondary AC current proportional to the primary load current without requiring direct electrical contact.
+
+The secondary output of the SCT013 is converted into a measurable voltage using a burden resistor, after which the signal is conditioned to interface with single-supply digital electronics. Since the sensor output is an AC waveform centered around 0\,V, a midpoint bias network referenced to half of the 3.3\,V supply is applied (1.65\,V). This bias shifts the waveform into the valid input range of the analog-to-digital converter while preserving its amplitude and phase information. Basic passive filtering is included to reduce high-frequency noise and improve signal stability.
+
+The conditioned and biased voltage signal is digitized using an external ADS1115 16-bit analog-to-digital converter. The ADS1115 is configured for single-ended input operation and samples the current measurement signal on channel AIN1 with respect to ground. Compared to the ESP32’s internal ADC, the external ADC provides improved resolution, reduced noise sensitivity, and more repeatable measurements, which is particularly beneficial for low-frequency AC current monitoring.
+
+All components of the current measurement chain operate in the low-voltage domain and share a common ground reference, while the SCT013 ensures electrical isolation from the high-voltage AC circuitry. This architecture allows safe and accurate acquisition of load current data suitable for further processing in software.
+
+\subsubsection*{Temperature Measurement Chain (LM35)}
+
+The outlet air temperature is measured using an LM35 analog temperature sensor, which provides an output voltage linearly proportional to temperature (10\,mV/\textdegree C). The sensor is powered from the 3.3\,V supply and referenced to the common low-voltage ground, ensuring compatibility with the ESP32 analog input range.
+
+The LM35 output is connected directly to an ESP32 ADC input pin, as the sensor’s output voltage remains within safe limits for the microcontroller under the expected temperature range. Due to the analog nature of the signal, wiring between the sensor and the microcontroller was kept short to minimize noise pickup and ensure stable readings.
+
+Physically, the sensor is positioned near the hair dryer air outlet and exposed to the outgoing airflow while avoiding direct contact with heating elements. This placement provides a representative measurement of operating temperature with acceptable response time, while reducing thermal stress and measurement instability caused by localized hot spots.
+
+Basic validation of the temperature measurement was performed by comparing sensor output against ambient room temperature under no-load conditions and observing expected temperature rises during normal device operation. These checks confirmed correct sensor orientation, electrical connection, and thermal coupling prior to integration with the control logic.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/LM35_TemperatureChain_Schematic}
+  \caption{Close-up schematic of the LM35 temperature measurement chain and ESP32 ADC connection.}
+  \label{fig:lm35_chain}
+\end{figure}
+
+\subsubsection*{Actuation Hardware (Blue LED / Relay Cutoff)}
+
+System actuation and user feedback are provided through a low-voltage relay and a blue status LED module, both controlled by the ESP32 via digital GPIO pins. The relay enables electrical isolation between the low-voltage control electronics and the mains-powered load, allowing the system to enable or disable the appliance safely.
+
+The relay control input is driven by a dedicated GPIO pin configured as a digital output. The relay module incorporates the required driver and isolation circuitry to interface directly with 3.3\,V logic levels, ensuring reliable switching while preventing high-voltage transients from propagating to the microcontroller. The relay contacts are located exclusively on the mains side of the circuit.
+
+Visual system feedback is provided by a DFRobot digital blue LED module connected to a separate GPIO pin. The module integrates the LED and its current-limiting circuitry on-board, allowing it to be driven directly from a 3.3\,V digital output without the need for an external series resistor. This simplifies wiring and reduces component count while maintaining safe operating conditions. The LED operates entirely within the low-voltage domain and provides a clear indication of system state (e.g., relay enabled or disabled).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/Actuation_LED_Relay_Schematic}
+  \caption{Close-up schematic of the relay cutoff and blue LED module actuation circuitry controlled by the ESP32.}
+  \label{fig:actuation_chain}
+\end{figure}
+
+
+\subsection{Hardware Build Photos}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\linewidth]{figures/IMG_6610.jpg}
+  \caption{Hardware: AC side and DC side.}
+\end{figure}
+\begin{figure}[H]
+  \centering
+  %\includegraphics[width=0.85\linewidth]{figures/.jpg}
+  \caption{Hardware: full setup.}
+\end{figure}
+
+% ==================================================
+\newpage
+\section{Prototype Development --- Software}
+
+\begin{figure}[H]
+  \centering
+  %TikZ/PGF and PGFPLOTS
+  \caption{Software schematic of the prototype.}
+  \label{fig:software_schematic}
+\end{figure}
+
+\subsection{Software Architecture}
+% Explain modules/files (main, current sensor module, temp module, actuator, API, control logic, config)
+
+\subsection{Data Streams and Sources}
+% Which API, what endpoint, update frequency, what fields you use (price, timestamp), failure handling
+% Sampling rates, buffering, timestamps, smoothing/averaging
+
+\subsection{Control and Recommendation Logic}
+% Example thresholds: normal band, alert threshold, failsafe threshold + hysteresis + timers
+% How you decide “best time to run” / “avoid now” based on prices and user constraints
+
+\subsection{Details of Key Algorithms and Communications}
+% Example of an algorithm: RMS, filtering, debouncing timers
+% Brief equations or pseudocode
+% Serial logs, dashboard/Streamlit, etc.
+\begin{figure}[H]
+  \centering
+  % \includegraphics[width=0.9\linewidth]{figures/dashboard.png}
+  \caption{Example UI/logging screenshot.}
+\end{figure}
+
+% ==================================================
+\newpage
+\section{Testing and Validation Iterations}
+
+\subsection{Test Plan}
+% What you tested: sensor accuracy, repeatability, alert timing, API robustness
+
+\subsection{Calibration Iterations}
+% Before/after, what changed, why
+
+\subsection{Failure Modes \& Mitigations}
+% WiFi drops, sensor disconnect, noisy ADC, overheating scenario, relay stuck, etc.
+
+% ==================================================
+\newpage
+\section{Results and Conclusion}
+
+\subsection{Performance}
+\subsubsection*{Current and Power Measurement Results}
+% Plots: RMS current vs time, estimated power vs mode
+
+\subsubsection*{Temperature Profiles}
+% Plots: outlet temperature over time, response during mode changes
+
+\subsubsection*{Control Outcomes}
+% How often alerts trigger, stability of temperature band, failsafe behavior if implemented
+
+\subsubsection*{Energy/Cost Impact Estimation}
+% Any computed savings, scenario analysis, peak/off-peak comparison
+
+\subsubsection*{Limitations and Improvements}
+% Hardware robustness, faster temp sensor, enclosure, better calibration, better UI, etc.
+
+\subsection{Discussion}
+\subsubsection*{Summary of Accomplishments}
+% What you built + verified
+
+\subsubsection*{Key Takeaways}
+% Safety, efficiency, pricing insight, system integration lessons
+
+% ==================================================
+\newpage
+\bibliographystyle{ieeetr}
+\bibliography{references}
+
+
+\end{document}
