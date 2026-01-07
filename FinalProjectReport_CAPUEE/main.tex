@@ -267,64 +267,73 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
     box/.style={rectangle, draw, fill=blue!10, text width=3cm, align=center, rounded corners, minimum height=1cm},
     api/.style={rectangle, draw, fill=green!10, text width=2.8cm, align=center, rounded corners, minimum height=1cm},
     sensor/.style={rectangle, draw, fill=orange!10, text width=2.5cm, align=center, rounded corners, minimum height=0.8cm},
-    arrow/.style={->, >=stealth, thick}
+    arrow/.style={->, >=stealth, thick},
+    dashed_arrow/.style={->, >=stealth, thick, dashed, gray}
   ]
 
     % Top layer - External APIs
-    \node[api] (openmeteo) at (0,0) {Open-Meteo API\\(Weather Data)};
-    \node[api] (ree) at (3.5,0) {REE API\\(Electricity Price)};
+    \node[api] (openmeteo) at (-1.5,0) {Open-Meteo API\\(Weather Data)};
+    \node[api] (ree) at (2,0) {REE API\\(Electricity Price)};
 
-    % Second layer - Dashboard
-    \node[box, fill=cyan!10] (dashboard) at (1.75,-2) {Streamlit\\Dashboard\\(UI)};
+    % Second layer - Dashboard (OPTIONAL)
+    \node[box, fill=cyan!10, dashed, draw=gray] (dashboard) at (-1.5,-2) {Streamlit\\Dashboard\\(Optional UI)};
+
+    % Terminal Input (Alternative to Dashboard)
+    \node[box, fill=yellow!10] (terminal) at (5,-2) {Terminal Input\\(Barcelona, medium, normal)};
 
     % Third layer - API Layer
-    \node[box, fill=green!20] (fastapi) at (1.75,-3.8) {FastAPI\\Protocol API\\(:8000)};
+    \node[box, fill=green!20] (fastapi) at (0.25,-3.8) {FastAPI\\Protocol API\\(:8000)};
 
     % Fourth layer - Calculation Module
-    \node[api] (calculator) at (1.75,-5.5) {Protocol\\Calculator};
+    \node[api] (calculator) at (0.25,-5.5) {Protocol\\Calculator};
 
     % Fifth layer - Main Control
-    \node[box, fill=blue!20, text width=3.5cm] (mainpy) at (1.75,-7.5) {Main Control\\(Integrated\_Project.py)};
+    \node[box, fill=blue!20, text width=3.5cm] (mainpy) at (2,-7.5) {Main Control\\+ Simulation Mode};
 
     % Sixth layer - Safety Strategy
-    \node[api, text width=2.5cm] (safety) at (5.5,-7.5) {Safety\\Strategy};
+    \node[api, text width=2.5cm] (safety) at (7.5,-7.5) {Safety\\Strategy};
 
-    % Bottom layer - Arduino
-    \node[box, fill=orange!20] (arduino) at (1.75,-9.5) {ESP32 Arduino\\(Firmware)};
+    % Bottom layer - Arduino (or Simulation)
+    \node[box, fill=orange!20] (arduino) at (2,-9.5) {ESP32 Arduino\\(or Simulation)};
 
     % Sensors
-    \node[sensor] (temp) at (-1,-11) {LM35\\Temp Sensor};
-    \node[sensor] (current) at (4.5,-11) {ACS712\\Current Sensor};
+    \node[sensor] (temp) at (-2,-11) {LM35\\Temp Sensor};
+    \node[sensor] (current) at (6.5,-11) {SCT013\\Current Sensor};
 
     % Actuator
-    \node[sensor, fill=red!10] (relay) at (1.75,-11.5) {Relay\\(Load Control)};
+    \node[sensor, fill=red!10] (relay) at (2,-11.5) {Relay\\(Load Control)};
 
     % Arrows - Data flow
-    \draw[arrow] (openmeteo) -- (dashboard);
-    \draw[arrow] (ree) -- (dashboard);
-    \draw[arrow] (dashboard) -- node[right, font=\tiny] {user inputs} (fastapi);
-    \draw[arrow] (fastapi) -- node[right, font=\tiny] {GET /protocol} (calculator);
+    \draw[dashed_arrow] (openmeteo) -- node[left, font=\tiny, text=gray] {optional} (dashboard);
+    \draw[dashed_arrow] (ree) -- (dashboard);
+    \draw[arrow] (openmeteo) to[out=-20, in=90] (mainpy);
+    \draw[arrow] (ree) to[out=-50, in=90] (mainpy);
+    \draw[dashed_arrow] (dashboard) -- node[right, font=\tiny, text=gray] {user inputs} (fastapi);
+    \draw[arrow] (terminal) -- node[right, font=\tiny] {location, hair type} (mainpy);
+    \draw[arrow] (fastapi) -- node[left, font=\tiny] {GET /protocol} (calculator);
     \draw[arrow] (calculator) -- (mainpy);
     \draw[arrow] (mainpy) -- node[above, font=\tiny] {check violations} (safety);
     \draw[arrow] (safety) -- (mainpy);
-    \draw[arrow] (mainpy) -- node[right, font=\tiny] {Serial (115200 baud)} (arduino);
+    \draw[arrow] (mainpy) -- node[right, font=\tiny] {Serial or simulated} (arduino);
     \draw[arrow] (arduino) -- node[left, font=\tiny] {sensor data (5s)} (mainpy);
     \draw[arrow] (temp) -- (arduino);
     \draw[arrow] (current) -- (arduino);
     \draw[arrow] (arduino) -- node[left, font=\tiny] {H/L commands} (relay);
 
   \end{tikzpicture}
-  \caption{Software schematic of the prototype showing data flow between modules, external APIs, sensors, and actuators.}
+  \caption{Software schematic showing dual operation modes: standalone terminal-based control (solid lines) with direct API access and default values, or optional dashboard interface (dashed lines). Simulation mode enables hardware-free software testing.}
   \label{fig:software_schematic}
 \end{figure}
 
 \subsection{Software Architecture}
 
-The software system consists of six primary modules working in a distributed architecture:
+The software system operates in two distinct modes with six primary modules in a distributed architecture:
+
+\textbf{Operation Modes:} The system supports both \emph{standalone terminal mode} (default) and \emph{dashboard-assisted mode}. In standalone mode, executed via \texttt{run\_integrated.bat} or direct Python invocation, users provide inputs through terminal prompts (location, hair type, porosity), and the main control system directly fetches weather and electricity data from external APIs with built-in fallback values (Barcelona, medium hair, normal porosity). In dashboard mode, launched via \texttt{run.bat}, a Streamlit web interface provides graphical input and visualization while the same backend services handle protocol generation and safety monitoring. Both modes share identical protocol calculation and safety enforcement logic, differing only in user interface presentation.
 
 \textbf{ESP32 Arduino Firmware} (\texttt{Integrated\_Project.ino}) implements the lowest-level hardware interface, reading analog sensors through an ADS1115 16-bit ADC for current measurement and the ESP32's built-in ADC for temperature. The firmware samples current at 1 kHz to calculate RMS values over 20 ms intervals, then averages 250 RMS samples to produce one filtered output every 5 seconds. It communicates via serial at 115200 baud, responding to relay control commands (`H' for high/on, `L' for low/off) and transmitting sensor readings in the format: \texttt{Temperature: XX.XX | Current: X.XXXXX}.
 
-\textbf{Main Control System} (\texttt{Integrated\_Project.py}) serves as the central coordinator, managing three key responsibilities: (1) serial communication with the ESP32 through the \texttt{SerialBoard} class, (2) protocol acquisition from the local API with user-specific parameters (hair type, porosity, environmental conditions), and (3) real-time safety monitoring by feeding sensor data to the \texttt{SafetyStrategy} module. It runs a continuous monitoring loop synchronized to the Arduino's 5-second output interval, checking for threshold violations and commanding relay shutdown when safety limits are exceeded.
+\textbf{Main Control System} (\texttt{Integrated\_Project.py}) serves as the central coordinator, managing three key responsibilities: (1) serial communication with the ESP32 through the \texttt{SerialBoard} class, (2) protocol acquisition from the local API with user-specific parameters (hair type, porosity, environmental conditions), and (3) real-time safety monitoring by feeding sensor data to the \texttt{SafetyStrategy} module. It runs a continuous monitoring loop synchronized to the Arduino's 5-second output interval, checking for threshold violations and commanding relay shutdown when safety limits are exceeded. Critically, this module implements \emph{simulation mode}: when Arduino connection fails, it generates synthetic sensor data (temperature ramping 65-89°C, current cycling 5-7 A) with realistic 5-second timing, enabling complete software testing without physical hardware. The simulation follows the same code paths as real operation, validating protocol logic, safety enforcement, and user interaction flows.
 
 \textbf{Protocol API} (\texttt{mock\_protocol\_api.py}) provides a RESTful interface via FastAPI at \texttt{http://127.0.0.1:8000/protocol}, accepting query parameters including room temperature, humidity, hair type, porosity, towel-dry level, time priority, and safety thresholds. It delegates calculation logic to the protocol calculator module and returns a JSON response specifying sensor-specific thresholds (temperature and current) with corresponding duration limits.
 
@@ -338,11 +347,11 @@ The software system consists of six primary modules working in a distributed arc
 
 The system integrates multiple external and internal data sources with specific update frequencies and failure handling:
 
-\textbf{Open-Meteo Weather API} provides current temperature and relative humidity for user-specified locations through two endpoints: (1) geocoding API (\texttt{https://geocoding-api.open-meteo.com/v1/search}) converts city names to coordinates, and (2) forecast API (\texttt{https://api.open-meteo.com/v1/forecast}) returns current weather with \texttt{temperature\_2m} and \texttt{relative\_humidity\_2m} fields. Requests timeout after 5 seconds, falling back to Barcelona coordinates (41.3874°N, 2.1686°E) or default values (20°C, 60\% humidity) on failure.
+\textbf{Open-Meteo Weather API} provides current temperature and relative humidity for user-specified locations through two endpoints: (1) geocoding API (\texttt{https://geocoding-api.open-meteo.com/v1/search}) converts city names to coordinates, and (2) forecast API (\texttt{https://api.open-meteo.com/v1/forecast}) returns current weather with \texttt{temperature\_2m} and \texttt{relative\_humidity\_2m} fields. This API is accessed by \emph{both} the dashboard (via \texttt{StreamlitDashboard.py}) and the main control system (via \texttt{fetch\_room\_conditions()} in \texttt{protocol\_calculator.py}), enabling standalone operation without dashboard dependency. Requests timeout after 5 seconds, falling back to Barcelona coordinates (41.3874°N, 2.1686°E) or default values (20°C, 60\% humidity) on failure, ensuring graceful degradation when network connectivity is unavailable.
 
-\textbf{REE Electricity Price API} delivers Spanish real-time electricity prices from \texttt{https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real} with hourly granularity. The system queries today's data (midnight to midnight UTC), extracts the current hour's price in €/MWh, and converts to €/kWh. For non-Spanish locations or API failures, it uses a regional price map with fallback values ranging from 0.14 (Canada) to 0.35 (Germany) €/kWh.
+\textbf{REE Electricity Price API} delivers Spanish real-time electricity prices from \texttt{https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real} with hourly granularity. The system queries today's data (midnight to midnight UTC), extracts the current hour's price in €/MWh, and converts to €/kWh. Like weather data, electricity pricing is accessed by both UI modes (dashboard and terminal), with the \texttt{fetch\_electricity\_price()} function providing unified access. For non-Spanish locations or API failures, it uses a regional price map with fallback values ranging from 0.14 (Canada) to 0.35 (Germany) €/kWh.
 
-\textbf{Arduino Sensor Data Stream} transmits temperature and current readings every 5 seconds over serial. Temperature measurements use the LM35's linear 10 mV/°C characteristic: $T = V \times 100$, where $V$ is the ADC voltage. Current measurements undergo two-stage filtering: RMS calculation over 20 ms windows (matching AC power frequency), then averaging 250 RMS samples for noise reduction. The 5-second interval balances responsiveness with computational efficiency, as the ESP32 performs $250 \times 20 = 5000$ ms of RMS integration per output.
+\textbf{Arduino Sensor Data Stream} transmits temperature and current readings every 5 seconds over serial. Temperature measurements use the LM35's linear 10 mV/°C characteristic: $T = V \times 100$, where $V$ is the ADC voltage. Current measurements undergo two-stage filtering: RMS calculation over 20 ms windows (matching AC power frequency), then averaging 250 RMS samples for noise reduction. The 5-second interval balances responsiveness with computational efficiency, as the ESP32 performs $250 \times 20 = 5000$ ms of RMS integration per output. In \emph{simulation mode} (triggered when \texttt{SerialBoard.connect()} fails), the main control system generates synthetic sensor data matching the same timing and format: temperature values cycle from 65°C to 89°C with random noise ($\pm 1^\circ C$), and current cycles from 5.0 to 7.0 A with noise ($\pm 0.1$ A). This simulation maintains the 5-second update cadence and identical data format (\texttt{Temperature: XX.XX | Current: X.XXXXX}), enabling full protocol validation, threshold testing, and UI verification without physical hardware.
 
 \textbf{Serial Communication Protocol} uses a simple ASCII format for bidirectional communication at 115200 baud. Commands from Python to Arduino consist of single characters (`H' for relay on, `L' for relay off, `PING' for handshake verification). Sensor data from Arduino follows the template \texttt{Temperature: XX.XX | Current: X.XXXXX}, parsed by splitting on the pipe character and extracting float values after colons. The Python \texttt{SerialBoard} class buffers incoming data in a background thread, updating \texttt{latest\_temp} and \texttt{latest\_current} attributes that the main control loop reads.
 
@@ -372,7 +381,7 @@ where $k_{\text{hair}} = \{0.7, 1.0, 1.4\}$ for fine/medium/thick hair. The fini
 \begin{equation}
 S_{\text{RMS}} = S_{\text{RMS}} + i^2(t) \cdot \Delta t
 \end{equation}
-where $i(t) = (V_{\text{ADC}} - 1.65) \times 30$ converts the ACS712's AC-coupled voltage to current, and $\Delta t$ in seconds is tracked by the microcontroller. After accumulating 20 samples (20 ms = one AC period at 50 Hz):
+where $i(t) = (V_{\text{ADC}} - 1.65) \times 30$ converts the SCT013's AC-coupled voltage to current, and $\Delta t$ in seconds is tracked by the microcontroller. After accumulating 20 samples (20 ms = one AC period at 50 Hz):
 \begin{equation}
 I_{\text{RMS}} = \sqrt{f \cdot S_{\text{RMS}}}
 \end{equation}
@@ -391,6 +400,8 @@ This 5-second averaging window (250 samples $\times$ 20 ms) provides stable read
 \textbf{Threaded Sensor Reading:} A daemon thread runs \texttt{read\_sensor\_data()} continuously, parsing incoming serial lines and updating \texttt{latest\_temp} and \texttt{latest\_current} attributes. The main control loop reads these attributes every 5 seconds, decoupling sensor I/O from safety logic. Thread synchronization relies on Python's GIL, as float assignments are atomic operations.
 
 \textbf{Demo Mode Acceleration:} Setting \texttt{DEMO\_MODE = 1} divides all protocol durations by 10 before sending to \texttt{SafetyStrategy}, allowing rapid testing (e.g., 4-minute protocols become 24 seconds). Critically, this only affects safety timeout durations, not the Arduino's sensor sampling or output rate, maintaining realistic sensor data flow during accelerated testing.
+
+\textbf{Multi-Service Launcher Architecture:} The \texttt{run.bat} script orchestrates three independent services in separate command windows: (1) FastAPI protocol server on port 8000, (2) Streamlit dashboard on port 8501, and (3) main control system with serial connection. Each service starts sequentially with configurable delays (3 seconds for API, 2 seconds for dashboard) to ensure dependencies initialize before dependent services launch. The script supports optional ngrok tunneling via \texttt{--ngrok} flag for remote access, dynamically setting environment variables (\texttt{API\_URL}, \texttt{DASHBOARD\_URL}) that the control system reads. For standalone operation, \texttt{run\_integrated.bat} bypasses dashboard and API services entirely, launching only the main control script with default local API endpoint (\texttt{http://127.0.0.1:8000/protocol}), which provides protocol data via the local FastAPI server if running or falls back to hardcoded defaults if unreachable.
 \begin{figure}[H]
   \centering
   % \includegraphics[width=0.9\linewidth]{figures/dashboard.png}
