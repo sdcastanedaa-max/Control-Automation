@@ -534,21 +534,32 @@ Serial Communication Protocol & Uses a simple ASCII format for bidirectional com
 
 The system implements three-tier safety thresholds with duration-based triggering and hysteresis:
 
-\textbf{Temperature Threshold Monitoring:} The protocol specifies a maximum temperature (e.g., 38°C measured at sensor location) and total duration limit based on calculated drying time. When sensor temperature exceeds threshold, \texttt{SafetyStrategy} records the violation timestamp. If temperature remains elevated for the full duration (e.g., total drying time of 4.2 minutes = 252 seconds in demo mode), the system triggers shutdown with the message "You used too long the total hairdrying duration." If temperature drops below threshold before duration expires, the timer resets, implementing hysteresis to prevent oscillation.
-
-\textbf{Current Threshold Monitoring:} High current indicates high heat mode usage on the hairdryer. The system monitors for sustained current above threshold (e.g., 5.0 A) for the bulk phase duration (e.g., 2.4 minutes). This prevents prolonged high-heat exposure that could damage hair, triggering shutdown with "You used too long the high heat mode in your hairdryer" when violated. The duration corresponds to the bulk drying phase, allowing sufficient time for the high-heat portion while preventing overuse.
-
-\textbf{Maximum Runtime Limit:} A failsafe 30-minute (1,800,000 ms) absolute runtime limit prevents indefinite operation regardless of sensor readings. This protects against sensor failures or unexpected usage patterns. In demo mode, all durations divide by 10 for faster testing (e.g., 30 minutes becomes 3 minutes).
-
-\textbf{Hysteresis Implementation:} The \texttt{SafetyStrategy.check\_violations()} method maintains per-condition state including \texttt{triggered\_at} timestamps. Violations only count when continuously exceeding thresholds for full durations. Dropping below threshold at any point resets the timer to \texttt{None}, requiring a fresh sustained violation to trigger shutdown. This design prevents false alarms from brief temperature spikes or momentary high-heat bursts during normal hair manipulation.
-
-\textbf{Recommendation Engine:} The protocol calculator determines heat settings through a multi-factor index. Starting with a hair-type baseline (fine=0, medium=1, thick=2), it adjusts for porosity (low +1, high -1), environmental drying power (DP $< 0.6$ adds +1, DP $> 1.2$ subtracts -1), and time priority (scaled by $0.5 \times (\text{priority} - 0.5)$). The final heat index, clamped to 0-2, maps to Low (50-60°C), Medium (70-80°C), or High (90-100°C) settings.
-
-Drying time calculation begins with a base bulk time:
-\begin{equation}
-t_{\text{bulk}} = \left(2 + \frac{\text{towel\_level} - 50}{25}\right) \times k_{\text{hair}} \div \left(0.5 + 0.5 \times \text{DP}\right) \div \left(1 + 0.3 \times \text{priority}\right)
-\end{equation}
-where $k_{\text{hair}} = \{0.7, 1.0, 1.4\}$ for fine/medium/thick hair. The finish time follows a similar formula with different coefficients. For favorable conditions (temp $\geq 18$\textdegree C, humidity $< 75\%$, DP $\geq 0.5$, priority $\leq 0.7$), the system recommends hybrid drying: 10-30 minutes of air drying followed by reduced blow-dry times (bulk $\times 0.6$, finish $\times 0.7$).
+\begin{longtable}{|p{0.20\textwidth}|p{0.75\textwidth}|}
+\caption{Control and Recommendation Logic Components}
+\label{tab:control_logic} \\
+\hline
+\textbf{Component} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Component} & \textbf{Description} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Temperature Threshold Monitoring & The protocol specifies a maximum temperature (e.g., 38°C measured at sensor location) and total duration limit based on calculated drying time. When sensor temperature exceeds threshold, \texttt{SafetyStrategy} records the violation timestamp. If temperature remains elevated for the full duration (e.g., total drying time of 4.2 minutes = 252 seconds in demo mode), the system triggers shutdown with the message "You used too long the total hairdrying duration." If temperature drops below threshold before duration expires, the timer resets, implementing hysteresis to prevent oscillation. \\
+\hline
+Current Threshold Monitoring & High current indicates high heat mode usage on the hairdryer. The system monitors for sustained current above threshold (e.g., 5.0 A) for the bulk phase duration (e.g., 2.4 minutes). This prevents prolonged high-heat exposure that could damage hair, triggering shutdown with "You used too long the high heat mode in your hairdryer" when violated. The duration corresponds to the bulk drying phase, allowing sufficient time for the high-heat portion while preventing overuse. \\
+\hline
+Maximum Runtime Limit & A failsafe 30-minute (1,800,000 ms) absolute runtime limit prevents indefinite operation regardless of sensor readings. This protects against sensor failures or unexpected usage patterns. In demo mode, all durations divide by 10 for faster testing (e.g., 30 minutes becomes 3 minutes). \\
+\hline
+Hysteresis Implementation & The \texttt{SafetyStrategy.check\_violations()} method maintains per-condition state including \texttt{triggered\_at} timestamps. Violations only count when continuously exceeding thresholds for full durations. Dropping below threshold at any point resets the timer to \texttt{None}, requiring a fresh sustained violation to trigger shutdown. This design prevents false alarms from brief temperature spikes or momentary high-heat bursts during normal hair manipulation. \\
+\hline
+Recommendation Engine & The protocol calculator determines heat settings through a multi-factor index. Starting with a hair-type baseline (fine=0, medium=1, thick=2), it adjusts for porosity (low +1, high -1), environmental drying power (DP $< 0.6$ adds +1, DP $> 1.2$ subtracts -1), and time priority (scaled by $0.5 \times (\text{priority} - 0.5)$). The final heat index, clamped to 0-2, maps to Low (50-60°C), Medium (70-80°C), or High (90-100°C) settings. Drying time calculation begins with a base bulk time: $t_{\text{bulk}} = \left(2 + \frac{\text{towel\_level} - 50}{25}\right) \times k_{\text{hair}} \div \left(0.5 + 0.5 \times \text{DP}\right) \div \left(1 + 0.3 \times \text{priority}\right)$ where $k_{\text{hair}} = \{0.7, 1.0, 1.4\}$ for fine/medium/thick hair. The finish time follows a similar formula with different coefficients. For favorable conditions (temp $\geq 18$°C, humidity $< 75\%$, DP $\geq 0.5$, priority $\leq 0.7$), the system recommends hybrid drying: 10-30 minutes of air drying followed by reduced blow-dry times (bulk $\times 0.6$, finish $\times 0.7$). \\
+\hline
+\end{longtable}
 
 \subsection{Details of Key Algorithms and Communications}
 
