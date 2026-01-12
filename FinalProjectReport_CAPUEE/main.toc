@@ -18,17 +18,17 @@
 \contentsline {subsection}{\numberline {4.1}Software Architecture}{11}{subsection.4.1}%
 \contentsline {subsection}{\numberline {4.2}Data Streams and Sources}{13}{subsection.4.2}%
 \contentsline {subsection}{\numberline {4.3}Control and Recommendation Logic}{14}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Details of Key Algorithms and Communications}{15}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.4}Details of Key Communication Patterns}{15}{subsection.4.4}%
 \contentsline {section}{\numberline {5}Testing and Validation Iterations}{17}{section.5}%
 \contentsline {subsection}{\numberline {5.1}Test Plan}{17}{subsection.5.1}%
-\contentsline {paragraph}{Current Sensor (SCT013)}{17}{section*.18}%
-\contentsline {paragraph}{Temperature Sensor (LM35)}{17}{section*.19}%
-\contentsline {paragraph}{Relay and LED}{17}{section*.20}%
-\contentsline {paragraph}{Serial Communication}{17}{section*.21}%
-\contentsline {paragraph}{Simulation Mode}{17}{section*.23}%
-\contentsline {paragraph}{DEMO Mode}{18}{section*.24}%
-\contentsline {paragraph}{API Robustness}{18}{section*.25}%
-\contentsline {paragraph}{Protocol Calculation}{18}{section*.26}%
+\contentsline {paragraph}{Current Sensor (SCT013)}{17}{section*.17}%
+\contentsline {paragraph}{Temperature Sensor (LM35)}{17}{section*.18}%
+\contentsline {paragraph}{Relay and LED}{17}{section*.19}%
+\contentsline {paragraph}{Serial Communication}{17}{section*.20}%
+\contentsline {paragraph}{Simulation Mode}{17}{section*.22}%
+\contentsline {paragraph}{DEMO Mode}{18}{section*.23}%
+\contentsline {paragraph}{API Robustness}{18}{section*.24}%
+\contentsline {paragraph}{Protocol Calculation}{18}{section*.25}%
 \contentsline {subsection}{\numberline {5.2}Calibration Iterations}{18}{subsection.5.2}%
 \contentsline {subsection}{\numberline {5.3}Failure Modes \& Mitigations}{19}{subsection.5.3}%
 \contentsline {section}{\numberline {6}Results and Conclusion}{21}{section.6}%

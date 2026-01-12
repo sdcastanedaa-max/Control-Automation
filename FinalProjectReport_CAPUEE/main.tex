@@ -428,10 +428,10 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
     \node[box, fill=yellow!10] (terminal) at (5,-2) {Terminal Input\\(Barcelona, medium, normal)};
 
     % Third layer - API Layer
-    \node[box, fill=green!20] (fastapi) at (0.25,-3.95) {FastAPI\\Protocol API\\(:8000)};
+    \node[box, fill=green!20] (fastapi) at (0.25,-3.95) {FastAPI\\Protocol API};
 
     % Fourth layer - Calculation Module
-    \node[api] (calculator) at (0.25,-6) {Hairdry Protocol\\Calculator};
+    \node[api] (calculator) at (0.25,-5.75) {Hairdry Protocol\\Calculator};
 
     % Fifth layer - Main Control
     \node[box, fill=blue!20, text width=3.5cm] (mainpy) at (2,-7.6) {Main Control\\Safety Strategy};
@@ -468,9 +468,9 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
 
 \subsection{Software Architecture}
 
-The software system operates in two distinct modes with six primary modules in a distributed architecture:
+The software operates in two distinct modes with six primary modules:
 
-\begin{longtable}{|p{0.25\textwidth}|p{0.70\textwidth}|}
+\begin{longtable}{|p{0.3\textwidth}|p{0.65\textwidth}|}
 \caption{System Components and Descriptions}
 \label{tab:system_components} \\
 \hline
@@ -489,7 +489,7 @@ Operation Modes & The system supports both \emph{standalone terminal mode} (defa
 \hline
 ESP32 Arduino Firmware (\texttt{Integrated\_Project.ino}) & Implements the lowest-level hardware interface, reading analog sensors through an ADS1115 16-bit ADC for current measurement and the ESP32's built-in ADC for temperature. The firmware samples current at 1 kHz to calculate RMS values over 20 ms intervals, then averages 250 RMS samples to produce one filtered output every 5 seconds. It communicates via serial at 115200 baud, responding to relay control commands (`H' for high/on, `L' for low/off) and transmitting sensor readings in the format: \texttt{Temperature: XX.XX | Current: X.XXXXX}. \\
 \hline
-Main Control System (\texttt{Integrated\_Project.py}) & Serves as the central coordinator, managing three key responsibilities: Serial communication with the ESP32 through the \texttt{SerialBoard} class; Protocol acquisition from the local API with user-specific parameters; Real-time safety monitoring by feeding sensor data to the \texttt{SafetyStrategy} module. It runs a continuous monitoring loop synchronized to the Arduino's 5-second output interval, checking for threshold violations and commanding relay shutdown when safety limits are exceeded. This module implements \emph{simulation mode}: when Arduino connection fails, it generates synthetic sensor data (temperature ramping 65-89°C, current cycling 5-7 A) with realistic 5-second timing, enabling complete software testing without physical hardware. The simulation follows the same code paths as real operation, validating protocol logic, safety enforcement, and user interaction flows. \\
+Main Control System (\texttt{Integrated\_Project.py}) & Serves as the central coordinator, managing three key responsibilities: Serial communication with the ESP32 through the \texttt{SerialBoard} class; Hairdry Protocol acquisition from the local API with user-specific parameters; Real-time safety monitoring by feeding sensor data to the \texttt{SafetyStrategy} module. It runs a continuous monitoring loop synchronized to the Arduino's 5-second output interval, checking for threshold violations and commanding relay shutdown when safety limits are exceeded. This module implements \emph{simulation mode}: when Arduino connection fails, it generates synthetic sensor data (temperature ramping 65-89°C, current cycling 5-7 A) with realistic 5-second timing, enabling complete software testing without physical hardware. The simulation follows the same code paths as real operation, validating protocol logic, safety enforcement, and user interaction flows. \\
 \hline
 Protocol API (\texttt{mock\_protocol\_api.py}) & Provides a RESTful interface via FastAPI at port 8000, accepting query parameters including room temperature, humidity, hair type, porosity, towel-dry level, time priority, and safety thresholds. It delegates calculation logic to the protocol calculator module and returns a JSON response specifying sensor-specific thresholds (temperature and current) with corresponding duration limits. \\
 \hline
@@ -505,7 +505,7 @@ Streamlit Dashboard (\texttt{StreamlitDashboard.py}) & Provides a web-based user
 
 The system integrates multiple external and internal data sources with specific update frequencies and failure handling:
 
-\begin{longtable}{|p{0.22\textwidth}|p{0.73\textwidth}|}
+\begin{longtable}{|p{0.3\textwidth}|p{0.65\textwidth}|}
 \caption{Data Streams and Sources}
 \label{tab:data_streams} \\
 \hline
@@ -526,15 +526,15 @@ REE Electricity Price API & Delivers Spanish real-time electricity prices with h
 \hline
 Arduino Sensor Data Stream & Transmits temperature and current readings every 5 seconds over serial. Temperature measurements use the LM35's linear 10 mV/°C characteristic: $T = V \times 100$, where $V$ is the ADC voltage. Current measurements undergo two-stage filtering: RMS calculation over 20 ms windows (matching AC power frequency), then averaging 250 RMS samples for noise reduction. The 5-second interval balances responsiveness with computational efficiency, as the ESP32 performs $250 \times 20 = 5000$ ms of RMS integration per output. In \emph{simulation mode} (triggered when \texttt{SerialBoard.connect()} fails), the main control system generates synthetic sensor data matching the same timing and format: temperature values cycle from 65°C to 89°C with random noise ($\pm 1^\circ C$), and current cycles from 5.0 to 7.0 A with noise ($\pm 0.1$ A). This simulation maintains the 5-second update cadence and identical data format (\texttt{Temperature: XX.XX | Current: X.XXXXX}), enabling full protocol validation, threshold testing, and UI verification without physical hardware. \\
 \hline
-Serial Communication Protocol & Uses a simple ASCII format for bidirectional communication at 115200 baud. Commands from Python to Arduino consist of single characters (`H' for relay on, `L' for relay off, `PING' for handshake verification). Sensor data from Arduino follows the template \texttt{Temperature: XX.XX | Current: X.XXXXX}, parsed by splitting on the pipe character and extracting float values after colons. The Python \texttt{SerialBoard} class buffers incoming data in a background thread, updating \texttt{latest\_temp} and \texttt{latest\_current} attributes that the main control loop reads. \\
+Serial Communication & Uses a simple ASCII format for bidirectional communication at 115200 baud. Commands from Python to Arduino consist of single characters (`H' for relay on, `L' for relay off, `PING' for handshake verification). Sensor data from Arduino follows the template \texttt{Temperature: XX.XX | Current: X.XXXXX}, parsed by splitting on the pipe character and extracting float values after colons. The Python \texttt{SerialBoard} class buffers incoming data in a background thread, updating \texttt{latest\_temp} and \texttt{latest\_current} attributes that the main control loop reads. \\
 \hline
 \end{longtable}
 
 \subsection{Control and Recommendation Logic}
 
-The system implements three-tier safety thresholds with duration-based triggering and hysteresis:
+Three-tier safety thresholds with duration-based triggering and hysteresis are implemented:
 
-\begin{longtable}{|p{0.20\textwidth}|p{0.75\textwidth}|}
+\begin{longtable}{|p{0.3\textwidth}|p{0.65\textwidth}|}
 \caption{Control and Recommendation Logic Components}
 \label{tab:control_logic} \\
 \hline
@@ -561,25 +561,9 @@ Recommendation Engine & The protocol calculator determines heat settings through
 \hline
 \end{longtable}
 
-\subsection{Details of Key Algorithms and Communications}
+\subsection{Details of Key Communication Patterns}
 
-\textbf{RMS Current Calculation:} The firmware computes true RMS using numerical integration synchronized to the AC power frequency (50 Hz). For each 1 ms timestep:
-\begin{equation}
-S_{\text{RMS}} = S_{\text{RMS}} + i^2(t) \cdot \Delta t
-\end{equation}
-where $i(t) = (V_{\text{ADC}} - 1.65) \times 30$ converts the SCT013's AC-coupled voltage to current, and $\Delta t$ in seconds is tracked by the microcontroller. After accumulating 20 samples (20 ms = one AC period at 50 Hz):
-\begin{equation}
-I_{\text{RMS}} = \sqrt{f \cdot S_{\text{RMS}}}
-\end{equation}
-where $f = 50$ Hz. The factor of frequency converts the time-integrated sum to proper RMS. This method accurately captures non-sinusoidal waveforms from variable-speed hairdryer motors.
-
-\textbf{Multi-Stage Filtering:} Raw RMS values undergo moving average filtering over 250 samples to reject high-frequency noise and short-term variations:
-\begin{equation}
-I_{\text{filtered}} = \frac{1}{250} \sum_{k=0}^{249} I_{\text{RMS}}[k]
-\end{equation}
-This 5-second averaging window (250 samples $\times$ 20 ms) provides stable readings while remaining responsive to actual usage changes. Values below 0.1 A are clamped to zero to eliminate sensor offset noise.
-
-\textbf{Serial Communication Handshake:} On connection, the Python client sends a PING command and waits 500 ms for "OK" or "PONG" response. If no response arrives but the serial port opened successfully, the system assumes valid connection and proceeds. This allows operation even if the Arduino firmware doesn't implement PING, while providing verification when available.
+\textbf{Multi-Service Launcher Architecture:} The \texttt{run.bat} script orchestrates three independent services: FastAPI protocol server (port 8000), Streamlit dashboard (port 8501), and main control system with serial connection. Services launch sequentially with configurable delays to ensure dependencies initialize. The script supports optional ngrok tunneling via \texttt{--ngrok} for remote access, dynamically setting environment variables (\texttt{API\_URL}, \texttt{DASHBOARD\_URL}) that the control system reads. For standalone operation, \texttt{run\_integrated.bat} bypasses dashboard and API, launching only the main control script. This provides protocol data via local FastAPI or falls back to hardcoded defaults if unreachable.
 
 \textbf{Automatic Port Discovery:} The \texttt{SerialBoard} class iterates through all available ports, attempting connection to each until successful. For each port, it opens the connection, waits 2 seconds for ESP32 initialization, attempts handshake, and moves to the next port on failure. This eliminates manual configuration.
 
@@ -587,12 +571,11 @@ This 5-second averaging window (250 samples $\times$ 20 ms) provides stable read
 
 \textbf{Demo Mode Acceleration:} Setting \texttt{DEMO\_MODE = 1} divides all protocol durations by 10 before sending to \texttt{SafetyStrategy}, allowing rapid testing (e.g., 4-minute protocols become 24 seconds). Critically, this only affects safety timeout durations, not the Arduino's sensor sampling or output rate, maintaining realistic sensor data flow during accelerated testing.
 
-\textbf{Multi-Service Launcher Architecture:} The \texttt{run.bat} script orchestrates three independent services: FastAPI protocol server (port 8000), Streamlit dashboard (port 8501), and main control system with serial connection. Services launch sequentially with configurable delays to ensure dependencies initialize. The script supports optional ngrok tunneling via \texttt{--ngrok} for remote access, dynamically setting environment variables (\texttt{API\_URL}, \texttt{DASHBOARD\_URL}) that the control system reads. For standalone operation, \texttt{run\_integrated.bat} bypasses dashboard and API, launching only the main control script. This provides protocol data via local FastAPI or falls back to hardcoded defaults if unreachable.
-\begin{figure}[H]
-  \centering
-  % \includegraphics[width=0.9\linewidth]{figures/dashboard.png}
-  \caption{Example UI/logging screenshot.}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.6\linewidth]{figures/logging.jpg}
+%   \caption{Example UI/logging screenshot.}
+% \end{figure}
 
 % ==================================================
 \newpage
@@ -624,20 +607,20 @@ This 5-second averaging window (250 samples $\times$ 20 ms) provides stable read
     \node[issue] (issue1) at (1.5,1.5) {Temp sensor readings too low (external placement)};
 
     % Mid October
-    \node[fix] (fix1) at (4,4) {Oct 15: Sensor moved between nozzle \& outlet};
-    \node[issue] (issue2) at (4,2.8) {Noisy current measurements};
-    \node[issue] (issue3) at (4,1.8) {RMS calculation errors};
-    \node[fix] (fix2) at (4,0.8) {Oct 17: RMS formula corrected};
+    \node[fix] (fix1) at (4.3,4) {Oct 15: Sensor moved between nozzle \& outlet};
+    \node[issue] (issue2) at (4.3,2.8) {Noisy current measurements};
+    \node[issue] (issue3) at (4.3,1.8) {RMS calculation errors};
+    \node[fix] (fix2) at (4.3,0.8) {Oct 17: RMS formula corrected};
 
     % Late October
-    \node[fix] (fix3) at (6.5,3.6) {Oct 17: Voltage calibration fixed};
-    \node[issue] (issue4) at (6.5,2.6) {Averaging accuracy issues};
-    \node[fix] (fix4) at (6.5,1.4) {Oct 23: Dynamic counter implemented};
+    \node[fix] (fix3) at (7.2,3.6) {Oct 17: Voltage calibration fixed};
+    \node[issue] (issue4) at (7.2,2.6) {Averaging accuracy issues};
+    \node[fix] (fix4) at (7.2,1.4) {Oct 23: Dynamic counter implemented};
 
     % November
-    \node[test] (test2) at (9.4,3.6) {Software integration testing};
-    \node[fix] (fix5) at (9.4,2.4) {Nov 27: Temp reading switched to direct ADC};
-    \node[fix] (fix6) at (9.4,1.05) {Nov 29: Safety strategy \& DEMO mode added};
+    \node[test] (test2) at (10,3.6) {Software integration testing};
+    \node[fix] (fix5) at (10,2.4) {Nov 27: Temp reading switched to direct ADC};
+    \node[fix] (fix6) at (10,1.05) {Nov 29: Safety strategy \& DEMO mode added};
 
     % December
     \node[issue] (issue5) at (12.5,4.3) {Serial connection failures};
@@ -688,7 +671,7 @@ For accelerated testing, a DEMO\_MODE flag divides all protocol durations by 10,
 External API calls (Open-Meteo weather, REE electricity pricing) were tested with timeout handling and fallback mechanisms. When APIs failed or returned invalid data, the system defaulted to reasonable values (Barcelona coordinates, 20°C, 60\% humidity, €0.26/kWh).
 
 \paragraph{Protocol Calculation}
-The hairdry protocol calculator was validated by testing various input combinations (hair types, porosity levels, environmental conditions) and verifying that heat settings and duration recommendations followed expected trends.
+The hairdry protocol calculator is based on established hair science principles from the literature~\cite{lee_hair_damage}, which demonstrate the relationship between heat exposure, drying time, and hair damage. Implementation and validation of the underlying protocol logic is outside the scope of this project. Instead, testing focused on verifying that the protocol generator correctly processes user inputs (hair type, porosity, environmental conditions) and produces consistent, internally coherent recommendations consistent with the referenced methodology.
 
 \subsubsection*{Integration Testing}
 
@@ -704,7 +687,7 @@ The test software in the repository (\texttt{run.bat}, \texttt{run\_integrated.b
 
 \subsection{Calibration Iterations}
 
-\begin{longtable}{|p{0.23\textwidth}|p{0.72\textwidth}|}
+\begin{longtable}{|p{0.2\textwidth}|p{0.75\textwidth}|}
 \caption{Calibration Iterations and Refinements}
 \label{tab:calibration_iterations} \\
 \hline
@@ -731,13 +714,13 @@ Averaging Calculation (Oct 23) & \textbf{Before:} Fixed constant \texttt{sampleA
 \hline
 Safety Strategy Threshold Values (Dec 15) & \textbf{Iteration:} Temperature and current thresholds adjusted to 80°C and 5 A based on observed sensor behavior during operation. \newline \textbf{Reason:} Initial thresholds too conservative, triggering false alarms during normal operation. Calibrated values balance safety enforcement with usability. \\
 \hline
-Hardware/Simulation Mode Synchronization (Dec 4) & \textbf{Issue:} Serial connection failures caused crashes instead of graceful fallback to simulation mode. \newline \textbf{Fix:} Enhanced \texttt{SerialBoard.connect()} with automatic port discovery, handshake verification, and explicit simulation mode activation. \newline \textbf{Reason:} Improved development workflow and robustness to serial port issues. \\
+Hardware Mode Synchronization (Dec 4) & \textbf{Issue:} Serial connection failures caused crashes instead of graceful fallback to simulation mode. \newline \textbf{Fix:} Enhanced \texttt{SerialBoard.connect()} with automatic port discovery, handshake verification, and explicit simulation mode activation. \newline \textbf{Reason:} Improved development workflow and robustness to serial port issues. \\
 \hline
 \end{longtable}
 
 \subsection{Failure Modes \& Mitigations}
 
-\begin{longtable}{|p{0.22\textwidth}|p{0.73\textwidth}|}
+\begin{longtable}{|p{0.2\textwidth}|p{0.75\textwidth}|}
 \caption{Failure Modes and Mitigation Strategies}
 \label{tab:failure_modes} \\
 \hline
@@ -923,9 +906,7 @@ Despite these limitations, the prototype successfully validates the core concept
 
 \subsubsection*{Summary of Accomplishments}
 
-This project successfully designed, implemented, and validated a functional smart hair dryer control system that integrates embedded sensing, software-based decision logic, and external data sources to enhance operational safety and energy efficiency. Key accomplishments include:
-
-\begin{longtable}{|p{0.25\textwidth}|p{0.70\textwidth}|}
+\begin{longtable}{|p{0.2\textwidth}|p{0.75\textwidth}|}
 \caption{Project Accomplishments and Key Implementations}
 \label{tab:accomplishments} \\
 \hline
@@ -954,47 +935,14 @@ Validation and Iteration & Conducted systematic component-level, software functi
 \hline
 \end{longtable}
 
-The prototype successfully demonstrated feasibility of intelligent household appliance control in a realistic operating environment using commercially available components and open-source software frameworks.
-
 \subsubsection*{Key Takeaways}
 
-\textbf{Safety and Reliability:}
+The project revealed that sensor placement matters more than specifications—the external temperature sensor's initial position gave technically accurate but operationally useless readings for safety monitoring. The dual-mode architecture (hardware + simulation with 10× time compression) proved essential for rapid development and testing without constant prototype access, demonstrating a valuable design pattern for complex IoT systems.
 
-The project reinforced the importance of robust safety system design in embedded control applications. Duration-based threshold enforcement with hysteresis proved essential for distinguishing genuine hazards from transient measurement noise, reducing false alarm rates by over 90\% compared to simple threshold-only implementations. The absolute maximum runtime failsafe (30 minutes) provides critical defense-in-depth protection against software bugs or sensor failures, demonstrating that safety-critical systems require multiple independent layers of protection.
+External API integration for weather and electricity pricing enhanced recommendations but required careful fault tolerance—five-second timeouts, fallback logic, and default values ensured the system remained functional despite intermittent connectivity. This reinforces that IoT devices must handle connectivity failures by design, not as an afterthought.
 
-Sensor placement emerged as a critical non-obvious factor: initial external temperature sensor positioning yielded measurements that were technically correct but operationally useless for safety monitoring. This highlights the need for careful consideration of measurement objectives during hardware design, not just sensor specifications.
+The non-invasive retrofit approach—clamp-on current sensors and relay switching without modifying the dryer's internals—shows legacy appliances can gain smart capabilities. However, the system's complexity (ESP32, external ADC, multiple sensors, Python software, APIs, web dashboard) questions commercial viability for low-cost devices. Future work should explore integrated sensor modules or simplified algorithms to reduce component count and complexity.
 
-\textbf{Energy Efficiency and User Behavior:}
-
-Integrating real-time electricity pricing and environmental data enabled quantitative demonstration of energy savings potential (36--42\% in favorable scenarios). However, the project revealed that raw data alone is insufficient—effective user interfaces must translate technical measurements into actionable recommendations. The hybrid drying protocol (air-dry followed by reduced blow-dry) exemplifies this principle: rather than simply displaying current temperature and humidity, the system generates a specific time-structured recommendation that users can easily follow.
-
-The protocol calculator's multi-factor decision logic (hair type, porosity, environment, time priority) demonstrates the complexity of personalized appliance control. Future smart home devices will likely require similar context-aware algorithms that balance multiple competing objectives (speed, cost, safety, quality) rather than optimizing single metrics.
-
-\textbf{System Integration and Software Architecture:}
-
-The dual-mode architecture (hardware + simulation) proved invaluable for accelerating development. Simulation mode enabled comprehensive software testing without physical prototype access, while demo mode's 10× time compression reduced test cycle times from hours to minutes. This design pattern—providing hardware-independent testing modes in embedded systems—should be considered best practice for complex IoT projects.
-
-External API integration introduced both value and fragility. Real-time weather and pricing data significantly enhanced the system's recommendations, but API timeouts and rate limiting required careful fallback logic. The five-second timeout threshold balanced responsiveness with resilience, while regional price maps and default environmental values ensured graceful degradation. This experience underscores that IoT systems must be designed for intermittent connectivity from inception, not as an afterthought.
-
-\textbf{Embedded Sensing and Signal Processing:}
-
-Accurate RMS current measurement required deeper understanding of AC power theory than initially anticipated. The time-domain integration approach ($I_{\text{RMS}} = \sqrt{f \times \int i^2(t) \, dt}$) proved essential for handling non-sinusoidal waveforms from variable-speed motor loads. Simple quadratic averaging systematically underestimated current by 15--25\%, demonstrating that domain-specific knowledge (in this case, AC power measurement) cannot be replaced by generic signal processing formulas.
-
-The two-stage filtering architecture (fast RMS followed by slow moving average) exemplifies the classic trade-off between responsiveness and stability. The 20 ms RMS window provides near-instantaneous current tracking, while the 250-sample (5-second) moving average suppresses noise for control decisions. This hierarchical filtering approach is broadly applicable to real-time sensor systems requiring both high-frequency monitoring and stable control outputs.
-
-\textbf{Practical Implications for Smart Appliances:}
-
-This project demonstrates that intelligent control can be retrofitted to existing appliances through non-invasive sensing and external actuation, rather than requiring complete device redesign. The SCT013 clamp-on current sensor and relay-based load switching enable safety monitoring without modifying the hair dryer's internal circuitry, suggesting a pathway for upgrading legacy appliances with smart capabilities.
-
-However, the complexity of the final system—ESP32 microcontroller, external ADC, multiple sensors, Python control software, API integrations, and web dashboard—raises questions about commercial viability for low-cost consumer devices. Future work should investigate whether similar functionality can be achieved with integrated sensor modules or simplified control algorithms that reduce component count and software complexity.
-
-\textbf{Educational Value:}
-
-From a pedagogical perspective, this project successfully integrated concepts from multiple engineering domains: embedded systems programming (Arduino firmware), high-level software development (Python, FastAPI, Streamlit), electrical measurements (RMS current, temperature sensing), control theory (threshold enforcement, hysteresis), system integration (serial communication, API consumption), and user experience design (interface development, feedback mechanisms).
-
-The iterative refinement process—from initial component testing through calibration errors to final validation—mirrors real-world product development cycles, providing valuable experience in debugging, root cause analysis, and systematic troubleshooting that extends beyond theoretical coursework.
-
-In conclusion, this project validates the technical feasibility and practical value of intelligent, user-aware control systems for household appliances. While commercial deployment would require further engineering to reduce cost and improve robustness, the prototype successfully demonstrates measurable improvements in safety monitoring and energy efficiency awareness, advancing the vision of context-aware smart home devices that adapt to individual user needs and environmental conditions.
 
 
 % ==================================================
