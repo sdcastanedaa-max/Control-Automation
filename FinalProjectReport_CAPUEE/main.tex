@@ -704,52 +704,36 @@ The test software in the repository (\texttt{run.bat}, \texttt{run\_integrated.b
 
 \subsection{Calibration Iterations}
 
-\subsubsection*{Temperature Sensor Physical Placement}
-\textbf{Before:} Temperature sensor was positioned outside the detachable nozzle, in the free air downstream of the hairdryer outlet.
-
-\textbf{After:} Sensor relocated between the nozzle and the main air outlet of the hairdryer body.
-
-\textbf{Reason:} External placement yielded temperature readings that were too low to be useful for safety monitoring. By the time the hot airflow exited the nozzle and reached the external sensor position, it had cooled significantly due to mixing with ambient air and increased distance from the heat source. Positioning the sensor between the nozzle attachment point and the main outlet captures representative operating temperatures while still avoiding direct contact with heating elements. This placement provides sufficient thermal response for safety monitoring while maintaining sensor durability.
-
-\subsubsection*{Temperature Sensor Reading Method (Nov 27)}
-\textbf{Before:} Temperature was read through I2C configuration, requiring \texttt{config\_i2c\_temp()} calls and ADS1115 channel switching between current and temperature measurements.
-
-\textbf{After:} Changed to direct analog reading (\texttt{analogRead(TEMP\_SENSOR\_PIN)}) using ESP32's built-in ADC. This simplified code, removed I2C delays, and eliminated channel-switching complexity.
-
-\textbf{Reason:} The LM35 output voltage (0-100 mV for 0-100°C scaled with 3.3 V reference) fits within ESP32 ADC range, making external ADC unnecessary. This reduced sensor reading latency and improved reliability.
-
-\subsubsection*{RMS Calculation Formula (Oct 17)}
-\textbf{Before:} RMS current calculated as $\sqrt{\text{quadratic\_sum} / \text{counter}}$, treating the sum as a simple average of squared values.
-
-\textbf{After:} Changed to $I_{\text{RMS}} = \sqrt{f \times S_{\text{RMS}}}$ where $f = 50$ Hz and $S_{\text{RMS}}$ is the time-integrated sum $\sum i^2(t) \cdot \Delta t$.
-
-\textbf{Reason:} Previous formula ignored the time-domain nature of RMS calculation. The corrected formula properly accounts for sampling interval and power frequency, yielding accurate RMS values synchronized to AC period.
-
-\subsubsection*{Current Sensor Voltage Calibration (Oct 17)}
-\textbf{Before:} Double calibration error: \texttt{v\_sensor = (read\_voltage() - v\_calib) * (v\_sensor - v\_calib)}, subtracting bias twice.
-
-\textbf{After:} Single calibration: \texttt{v\_sensor = read\_voltage() - 1.65}, then \texttt{current = 30.0 * v\_sensor}.
-
-\textbf{Reason:} The SCT013 output is biased to 1.65 V (half of 3.3 V supply) to center AC waveform in ADC range. Only one bias subtraction is needed before applying the 30 A/V transformer ratio.
-
-\subsubsection*{Averaging Calculation (Oct 23)}
-\textbf{Before:} Averaging used fixed constant \texttt{sampleAverage} regardless of actual samples collected.
-
-\textbf{After:} Use dynamic \texttt{accumulated\_counter} to divide accumulated current: \texttt{filteredCurrentRms = accumulatedCurrent / accumulated\_counter}.
-
-\textbf{Reason:} Using actual count improves accuracy, especially during startup when buffer isn't full, and makes code more robust to timing variations.
-
-\subsubsection*{Safety Strategy Threshold Values (Dec 15)}
-\textbf{Iteration:} Temperature and current thresholds were adjusted based on observed sensor behavior during hairdryer operation. Final values settled at 80°C temperature threshold and 5 A current threshold.
-
-\textbf{Reason:} Initial thresholds were too conservative, triggering false alarms during normal operation. After observing actual sensor ranges, thresholds were calibrated to balance safety enforcement with usability.
-
-\subsubsection*{Hardware/Simulation Mode Synchronization (Dec 4)}
-\textbf{Issue:} Serial connection failures caused crashes rather than graceful fallback to simulation mode.
-
-\textbf{Fix:} Enhanced \texttt{SerialBoard.connect()} with automatic port discovery, handshake verification, and explicit simulation mode activation on connection failure.
-
-\textbf{Reason:} Improved development workflow by allowing software testing when hardware wasn't connected, and made the system more robust to serial port issues.
+\begin{longtable}{|p{0.23\textwidth}|p{0.72\textwidth}|}
+\caption{Calibration Iterations and Refinements}
+\label{tab:calibration_iterations} \\
+\hline
+\textbf{Iteration} & \textbf{Details} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Iteration} & \textbf{Details} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Temperature Sensor Physical Placement & \textbf{Before:} Positioned outside the detachable nozzle, in free air downstream. \textbf{After:} Relocated between the nozzle and main air outlet. \textbf{Reason:} External placement yielded readings too low for safety monitoring due to cooling by ambient air mixing. The new placement captures representative operating temperatures while avoiding direct heating element contact and maintains sensor durability. \\
+\hline
+Temperature Sensor Reading Method (Nov 27) & \textbf{Before:} I2C configuration requiring \texttt{config\_i2c\_temp()} calls and ADS1115 channel switching. \textbf{After:} Direct analog reading using \texttt{analogRead(TEMP\_SENSOR\_PIN)} via ESP32 built-in ADC. \textbf{Reason:} LM35 output voltage (0-100 mV for 0-100°C) fits within ESP32 ADC range, eliminating need for external ADC. Reduced sensor reading latency and improved reliability. \\
+\hline
+RMS Calculation Formula (Oct 17) & \textbf{Before:} Calculated as $\sqrt{\text{quadratic\_sum} / \text{counter}}$, treating sum as simple average of squared values. \textbf{After:} Changed to $I_{\text{RMS}} = \sqrt{f \times S_{\text{RMS}}}$ where $f = 50$ Hz and $S_{\text{RMS}} = \sum i^2(t) \cdot \Delta t$. \textbf{Reason:} Properly accounts for time-domain integration and power frequency synchronization for accurate RMS values. \\
+\hline
+Current Sensor Voltage Calibration (Oct 17) & \textbf{Before:} Double calibration error: \texttt{v\_sensor = (read\_voltage() - v\_calib) * (v\_sensor - v\_calib)}. \textbf{After:} Single calibration: \texttt{v\_sensor = read\_voltage() - 1.65}, then \texttt{current = 30.0 * v\_sensor}. \textbf{Reason:} SCT013 output biased to 1.65 V (half 3.3 V supply); only one subtraction needed before applying 30 A/V transformer ratio. \\
+\hline
+Averaging Calculation (Oct 23) & \textbf{Before:} Fixed constant \texttt{sampleAverage} regardless of samples collected. \textbf{After:} Dynamic \texttt{accumulated\_counter}: \texttt{filteredCurrentRms = accumulatedCurrent / accumulated\_counter}. \textbf{Reason:} Using actual count improves accuracy especially during startup when buffer isn't full, and ensures robustness to timing variations. \\
+\hline
+Safety Strategy Threshold Values (Dec 15) & \textbf{Iteration:} Temperature and current thresholds adjusted to 80°C and 5 A based on observed sensor behavior during operation. \textbf{Reason:} Initial thresholds too conservative, triggering false alarms during normal operation. Calibrated values balance safety enforcement with usability. \\
+\hline
+Hardware/Simulation Mode Synchronization (Dec 4) & \textbf{Issue:} Serial connection failures caused crashes instead of graceful fallback to simulation mode. \textbf{Fix:} Enhanced \texttt{SerialBoard.connect()} with automatic port discovery, handshake verification, and explicit simulation mode activation. \textbf{Reason:} Improved development workflow and robustness to serial port issues. \\
+\hline
+\end{longtable}
 
 \subsection{Failure Modes \& Mitigations}
 
