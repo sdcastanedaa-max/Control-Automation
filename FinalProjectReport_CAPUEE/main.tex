@@ -737,40 +737,36 @@ Hardware/Simulation Mode Synchronization (Dec 4) & \textbf{Issue:} Serial connec
 
 \subsection{Failure Modes \& Mitigations}
 
-\subsubsection*{Serial Connection Loss}
-\textbf{Failure:} ESP32 disconnects during operation (USB cable unplugged, port driver issue, ESP32 reset).
-
-\textbf{Mitigation:} Automatic port discovery iterates through all available serial ports attempting connection. Simulation mode activates if no hardware found, allowing software to continue testing with synthetic data.
-
-\subsubsection*{Sensor Disconnection or Invalid Readings}
-\textbf{Failure:} Temperature or current sensors return invalid values (e.g., negative temperature, implausible current spikes).
-
-\textbf{Mitigation:} Current values below 0.1 A are clamped to zero. Simulation mode provides known-good data when hardware fails. Future work could add explicit range checking (e.g., temperature between -10°C and 150°C).
-
-\subsubsection*{Noisy ADC Measurements}
-\textbf{Failure:} High-frequency electrical noise from hairdryer motor and heating elements couples into sensor signals.
-
-\textbf{Mitigation:} Two-stage filtering: (1) RMS calculation integrates 20 ms (one AC period) to reject transients, (2) 250-sample moving average produces stable 5-second output. Burden resistor and passive RC filtering on SCT013 output further reduce noise.
-
-\subsubsection*{External API Failures}
-\textbf{Failure:} Open-Meteo or REE API unreachable (network outage, service downtime, rate limiting).
-
-\textbf{Mitigation:} All API calls have 5-second timeouts. Weather API falls back to Barcelona coordinates then to default values (20°C, 60\% humidity). Electricity API uses regional price map for non-Spanish locations, then defaults to €0.26/kWh.
-
-\subsubsection*{False Safety Alarms}
-\textbf{Failure:} Brief temperature spikes or momentary high-current bursts trigger safety shutdown during normal hair manipulation.
-
-\textbf{Mitigation:} Duration-based threshold enforcement with hysteresis. Violations only trigger after continuously exceeding thresholds for the full protocol duration (e.g., 4.2 minutes for temperature). If sensor readings drop below threshold before duration expires, timer resets, requiring a fresh sustained violation.
-
-\subsubsection*{Relay Contact Failure}
-\textbf{Failure:} Relay contacts weld closed (stuck on) or fail open (stuck off).
-
-\textbf{Mitigation:} Current sensor provides independent verification of load state. If relay commanded off but current remains high, software can detect mismatch and alert user. Physical relay rated for 10 A at 250 VAC with appropriate safety margin for 7 A hairdryer load.
-
-\subsubsection*{Maximum Runtime Protection}
-\textbf{Failure:} Software bug or sensor failure prevents normal shutdown, allowing indefinite operation.
-
-\textbf{Mitigation:} Absolute 30-minute (1,800,000 ms) timeout regardless of sensor readings. Acts as failsafe against logic errors or stuck sensors.
+\begin{longtable}{|p{0.22\textwidth}|p{0.73\textwidth}|}
+\caption{Failure Modes and Mitigation Strategies}
+\label{tab:failure_modes} \\
+\hline
+\textbf{Failure Mode} & \textbf{Details} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Failure Mode} & \textbf{Details} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Serial Connection Loss & \textbf{Failure:} ESP32 disconnects during operation (USB cable unplugged, port driver issue, ESP32 reset). \newline \textbf{Mitigation:} Automatic port discovery iterates through all available serial ports attempting connection. Simulation mode activates if no hardware found, allowing software to continue testing with synthetic data. \\
+\hline
+Sensor Disconnection or Invalid Readings & \textbf{Failure:} Temperature or current sensors return invalid values (e.g., negative temperature, implausible current spikes). \newline \textbf{Mitigation:} Current values below 0.1 A are clamped to zero. Simulation mode provides known-good data when hardware fails. Future work could add explicit range checking (e.g., temperature between -10°C and 150°C). \\
+\hline
+Noisy ADC Measurements & \textbf{Failure:} High-frequency electrical noise from hairdryer motor and heating elements couples into sensor signals. \newline \textbf{Mitigation:} Two-stage filtering: (1) RMS calculation integrates 20 ms (one AC period) to reject transients, (2) 250-sample moving average produces stable 5-second output. Burden resistor and passive RC filtering on SCT013 output further reduce noise. \\
+\hline
+External API Failures & \textbf{Failure:} Open-Meteo or REE API unreachable (network outage, service downtime, rate limiting). \newline \textbf{Mitigation:} All API calls have 5-second timeouts. Weather API falls back to Barcelona coordinates then to default values (20°C, 60\% humidity). Electricity API uses regional price map for non-Spanish locations, then defaults to €0.26/kWh. \\
+\hline
+False Safety Alarms & \textbf{Failure:} Brief temperature spikes or momentary high-current bursts trigger safety shutdown during normal hair manipulation. \newline \textbf{Mitigation:} Duration-based threshold enforcement with hysteresis. Violations only trigger after continuously exceeding thresholds for the full protocol duration (e.g., 4.2 minutes for temperature). If sensor readings drop below threshold before duration expires, timer resets, requiring a fresh sustained violation. \\
+\hline
+Relay Contact Failure & \textbf{Failure:} Relay contacts weld closed (stuck on) or fail open (stuck off). \newline \textbf{Mitigation:} Current sensor provides independent verification of load state. If relay commanded off but current remains high, software can detect mismatch and alert user. Physical relay rated for 10 A at 250 VAC with appropriate safety margin for 7 A hairdryer load. \\
+\hline
+Maximum Runtime Protection & \textbf{Failure:} Software bug or sensor failure prevents normal shutdown, allowing indefinite operation. \newline \textbf{Mitigation:} Absolute 30-minute (1,800,000 ms) timeout regardless of sensor readings. Acts as failsafe against logic errors or stuck sensors. \\
+\hline
+\end{longtable}
 
 % ==================================================
 \newpage
