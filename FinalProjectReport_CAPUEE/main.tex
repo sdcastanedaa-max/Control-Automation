@@ -945,46 +945,34 @@ Despite these limitations, the prototype successfully validates the core concept
 
 This project successfully designed, implemented, and validated a functional smart hair dryer control system that integrates embedded sensing, software-based decision logic, and external data sources to enhance operational safety and energy efficiency. Key accomplishments include:
 
-\textbf{Hardware Implementation:}
-\begin{itemize}
-  \item Integrated a non-invasive SCT013 current transformer with an ADS1115 16-bit ADC to achieve accurate RMS current measurements across 0--7 A range with $\pm 0.2$ A precision.
-  \item Calibrated an LM35 temperature sensor to provide representative outlet air temperature readings (45--105°C range) with appropriate sensor placement determined through iterative testing.
-  \item Deployed relay-based load switching and LED visual feedback controlled by ESP32 GPIO pins, enabling automated safety enforcement.
-\end{itemize}
-
-\textbf{Firmware and Embedded Software:}
-\begin{itemize}
-  \item Developed Arduino firmware implementing true RMS current calculation synchronized to 50 Hz AC power frequency, incorporating time-domain integration and two-stage filtering (20 ms RMS + 250-sample moving average).
-  \item Achieved stable 5-second sensor output cadence matching the protocol's temporal resolution requirements.
-  \item Implemented bidirectional serial communication protocol supporting relay control commands and formatted sensor data transmission.
-\end{itemize}
-
-\textbf{Supervisory Control System:}
-\begin{itemize}
-  \item Designed and implemented a Python-based main control system with automatic serial port discovery, handshake verification, and graceful fallback to simulation mode when hardware is unavailable.
-  \item Integrated a safety strategy module that enforces duration-based threshold violations with hysteresis, preventing false alarms while ensuring timely response to genuine unsafe conditions.
-  \item Validated functionality in both hardware-connected and simulation modes, with demo mode acceleration (10× time compression) enabling rapid iterative testing.
-\end{itemize}
-
-\textbf{Protocol Generation and External Data Integration:}
-\begin{itemize}
-  \item Developed a protocol calculator that generates personalized safety thresholds and drying recommendations based on user-specific parameters (hair type, porosity) and environmental conditions (temperature, humidity).
-  \item Successfully integrated Open-Meteo weather API and Spanish REE electricity pricing API with timeout handling and regional fallback values, demonstrating robust external data acquisition.
-  \item Implemented hybrid drying recommendations that leverage favorable environmental conditions to reduce energy consumption by 40--50\% in suitable scenarios.
-\end{itemize}
-
-\textbf{User Interface and Visualization:}
-\begin{itemize}
-  \item Created a Streamlit dashboard providing graphical input for user parameters, real-time protocol visualization, and comparative energy cost analysis across different drying strategies.
-  \item Delivered interpretable safety shutdown messages that clearly communicate the reason for relay disconnection, improving user understanding of system behavior.
-\end{itemize}
-
-\textbf{Validation and Iteration:}
-\begin{itemize}
-  \item Conducted systematic component-level, software functionality, and integration testing over a three-month period (October--December 2025).
-  \item Identified and resolved critical issues including temperature sensor placement, RMS calculation formula errors, voltage calibration bugs, and false alarm triggers through iterative refinement.
-  \item Documented testing timeline with clear traceability between identified issues and implemented mitigations.
-\end{itemize}
+\begin{longtable}{|p{0.25\textwidth}|p{0.70\textwidth}|}
+\caption{Project Accomplishments and Key Implementations}
+\label{tab:accomplishments} \\
+\hline
+\textbf{Category} & \textbf{Key Accomplishments} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Category} & \textbf{Key Accomplishments} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Hardware Implementation & Integrated a non-invasive SCT013 current transformer with an ADS1115 16-bit ADC to achieve accurate RMS current measurements across 0--7 A range with $\pm 0.2$ A precision. Calibrated an LM35 temperature sensor to provide representative outlet air temperature readings (45--105°C range) with appropriate sensor placement determined through iterative testing. Deployed relay-based load switching and LED visual feedback controlled by ESP32 GPIO pins, enabling automated safety enforcement. \\
+\hline
+Firmware and Embedded Software & Developed Arduino firmware implementing true RMS current calculation synchronized to 50 Hz AC power frequency, incorporating time-domain integration and two-stage filtering (20 ms RMS + 250-sample moving average). Achieved stable 5-second sensor output cadence matching the protocol's temporal resolution requirements. Implemented bidirectional serial communication protocol supporting relay control commands and formatted sensor data transmission. \\
+\hline
+Supervisory Control System & Designed and implemented a Python-based main control system with automatic serial port discovery, handshake verification, and graceful fallback to simulation mode when hardware is unavailable. Integrated a safety strategy module that enforces duration-based threshold violations with hysteresis, preventing false alarms while ensuring timely response to genuine unsafe conditions. Validated functionality in both hardware-connected and simulation modes, with demo mode acceleration (10× time compression) enabling rapid iterative testing. \\
+\hline
+Protocol Generation and External Data Integration & Developed a protocol calculator that generates personalized safety thresholds and drying recommendations based on user-specific parameters (hair type, porosity) and environmental conditions (temperature, humidity). Successfully integrated Open-Meteo weather API and Spanish REE electricity pricing API with timeout handling and regional fallback values, demonstrating robust external data acquisition. Implemented hybrid drying recommendations that leverage favorable environmental conditions to reduce energy consumption by 40--50\% in suitable scenarios. \\
+\hline
+User Interface and Visualization & Created a Streamlit dashboard providing graphical input for user parameters, real-time protocol visualization, and comparative energy cost analysis across different drying strategies. Delivered interpretable safety shutdown messages that clearly communicate the reason for relay disconnection, improving user understanding of system behavior. \\
+\hline
+Validation and Iteration & Conducted systematic component-level, software functionality, and integration testing over a three-month period (October--December 2025). Identified and resolved critical issues including temperature sensor placement, RMS calculation formula errors, voltage calibration bugs, and false alarm triggers through iterative refinement. Documented testing timeline with clear traceability between identified issues and implemented mitigations. \\
+\hline
+\end{longtable}
 
 The prototype successfully demonstrated feasibility of intelligent household appliance control in a realistic operating environment using commercially available components and open-source software frameworks.
 
