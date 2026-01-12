@@ -87,15 +87,12 @@ Success is measured by the system's ability to consistently detect and respond t
 \subsection{System Overview of the Proposed Solution}
 % High-level principle: sense (current + temperature) -> decide -> actuate + recommend schedule via price API
 % Insert diagram: sensors -> ESP32 -> control logic -> actuators + data logging/UI + external API
-\begin{figure}[H]
-  \centering
- 
-
-    \includegraphics[width=1\linewidth]{figures/System schematic of the prototype.png}
-   
-   \caption{System schematic of the prototype.}
-  \label{fig:system-flow}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%      \includegraphics[width=1\linewidth]{figures/System schematic of the prototype.png}
+%    \caption{System schematic of the prototype.}
+%   \label{fig:system-flow}
+% \end{figure}
 
   
 
@@ -370,12 +367,12 @@ Physically, the sensor is positioned between the detachable nozzle and the main 
 
 Basic validation of the temperature measurement was performed by comparing sensor output against ambient room temperature under no-load conditions and observing expected temperature rises during normal device operation. These checks confirmed correct sensor orientation, electrical connection, and thermal coupling prior to integration with the control logic.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.6\linewidth]{figures/LM35_TemperatureChain_Schematic.pdf}
-  \caption{Close-up schematic of the LM35 temperature measurement chain and ESP32 ADC connection.}
-  \label{fig:lm35_chain}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.6\linewidth]{figures/LM35_TemperatureChain_Schematic.pdf}
+%   \caption{Close-up schematic of the LM35 temperature measurement chain and ESP32 ADC connection.}
+%   \label{fig:lm35_chain}
+% \end{figure}
 
 \subsubsection*{Actuation Hardware (Blue LED / Relay Cutoff)}
 
@@ -385,12 +382,12 @@ The relay control input is driven by a dedicated GPIO pin configured as a digita
 
 Visual system feedback is provided by a DFRobot digital blue LED module connected to a separate GPIO pin. The module integrates the LED and its current-limiting circuitry on-board, allowing it to be driven directly from a 3.3\,V digital output without the need for an external series resistor. This simplifies wiring and reduces component count while maintaining safe operating conditions. The LED operates entirely within the low-voltage domain and provides a clear indication of system state (e.g., relay enabled or disabled).
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.6\linewidth]{figures/Actuation_LED_Relay_Schematic.pdf}
-  \caption{Close-up schematic of the relay cutoff and blue LED module actuation circuitry controlled by the ESP32.}
-  \label{fig:actuation_chain}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.6\linewidth]{figures/Actuation_LED_Relay_Schematic.pdf}
+%   \caption{Close-up schematic of the relay cutoff and blue LED module actuation circuitry controlled by the ESP32.}
+%   \label{fig:actuation_chain}
+% \end{figure}
 
 
 \subsection{Hardware Build Photos}
@@ -399,11 +396,11 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
   \includegraphics[width=0.6\linewidth]{figures/IMG_6610.jpg}
   \caption{Hardware: AC side and DC side.}
 \end{figure}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\linewidth]{figures/FullSetup.jpeg}
-  \caption{Hardware: full setup.}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.85\linewidth]{figures/FullSetup.jpeg}
+%   \caption{Hardware: full setup.}
+% \end{figure}
 
 % ==================================================
 \newpage
@@ -508,13 +505,30 @@ Streamlit Dashboard (\texttt{StreamlitDashboard.py}) & Provides a web-based user
 
 The system integrates multiple external and internal data sources with specific update frequencies and failure handling:
 
-\textbf{Open-Meteo Weather API} provides current temperature and relative humidity for specified locations. Two endpoints are used: geocoding API converts location names to coordinates, and forecast API returns weather data with temperature and humidity fields. Both dashboard and main control system access this API, enabling standalone operation. Requests timeout after 5 seconds with fallback to Barcelona coordinates or default values (20°C, 60\% humidity) on failure.
-
-\textbf{REE Electricity Price API} delivers Spanish real-time electricity prices with hourly granularity. The system queries current hour's price in €/MWh and converts to €/kWh. Both UI modes access this via unified function. For non-Spanish locations or API failures, a regional price map provides fallback values ranging from 0.14 to 0.35 €/kWh.
-
-\textbf{Arduino Sensor Data Stream} transmits temperature and current readings every 5 seconds over serial. Temperature measurements use the LM35's linear 10 mV/°C characteristic: $T = V \times 100$, where $V$ is the ADC voltage. Current measurements undergo two-stage filtering: RMS calculation over 20 ms windows (matching AC power frequency), then averaging 250 RMS samples for noise reduction. The 5-second interval balances responsiveness with computational efficiency, as the ESP32 performs $250 \times 20 = 5000$ ms of RMS integration per output. In \emph{simulation mode} (triggered when \texttt{SerialBoard.connect()} fails), the main control system generates synthetic sensor data matching the same timing and format: temperature values cycle from 65°C to 89°C with random noise ($\pm 1^\circ C$), and current cycles from 5.0 to 7.0 A with noise ($\pm 0.1$ A). This simulation maintains the 5-second update cadence and identical data format (\texttt{Temperature: XX.XX | Current: X.XXXXX}), enabling full protocol validation, threshold testing, and UI verification without physical hardware.
-
-\textbf{Serial Communication Protocol} uses a simple ASCII format for bidirectional communication at 115200 baud. Commands from Python to Arduino consist of single characters (`H' for relay on, `L' for relay off, `PING' for handshake verification). Sensor data from Arduino follows the template \texttt{Temperature: XX.XX | Current: X.XXXXX}, parsed by splitting on the pipe character and extracting float values after colons. The Python \texttt{SerialBoard} class buffers incoming data in a background thread, updating \texttt{latest\_temp} and \texttt{latest\_current} attributes that the main control loop reads.
+\begin{longtable}{|p{0.22\textwidth}|p{0.73\textwidth}|}
+\caption{Data Streams and Sources}
+\label{tab:data_streams} \\
+\hline
+\textbf{Data Source} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Data Source} & \textbf{Description} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Open-Meteo Weather API & Provides current temperature and relative humidity for specified locations. Two endpoints are used: geocoding API converts location names to coordinates, and forecast API returns weather data with temperature and humidity fields. Both dashboard and main control system access this API, enabling standalone operation. Requests timeout after 5 seconds with fallback to Barcelona coordinates or default values (20°C, 60\% humidity) on failure. \\
+\hline
+REE Electricity Price API & Delivers Spanish real-time electricity prices with hourly granularity. The system queries current hour's price in €/MWh and converts to €/kWh. Both UI modes access this via unified function. For non-Spanish locations or API failures, a regional price map provides fallback values ranging from 0.14 to 0.35 €/kWh. \\
+\hline
+Arduino Sensor Data Stream & Transmits temperature and current readings every 5 seconds over serial. Temperature measurements use the LM35's linear 10 mV/°C characteristic: $T = V \times 100$, where $V$ is the ADC voltage. Current measurements undergo two-stage filtering: RMS calculation over 20 ms windows (matching AC power frequency), then averaging 250 RMS samples for noise reduction. The 5-second interval balances responsiveness with computational efficiency, as the ESP32 performs $250 \times 20 = 5000$ ms of RMS integration per output. In \emph{simulation mode} (triggered when \texttt{SerialBoard.connect()} fails), the main control system generates synthetic sensor data matching the same timing and format: temperature values cycle from 65°C to 89°C with random noise ($\pm 1^\circ C$), and current cycles from 5.0 to 7.0 A with noise ($\pm 0.1$ A). This simulation maintains the 5-second update cadence and identical data format (\texttt{Temperature: XX.XX | Current: X.XXXXX}), enabling full protocol validation, threshold testing, and UI verification without physical hardware. \\
+\hline
+Serial Communication Protocol & Uses a simple ASCII format for bidirectional communication at 115200 baud. Commands from Python to Arduino consist of single characters (`H' for relay on, `L' for relay off, `PING' for handshake verification). Sensor data from Arduino follows the template \texttt{Temperature: XX.XX | Current: X.XXXXX}, parsed by splitting on the pipe character and extracting float values after colons. The Python \texttt{SerialBoard} class buffers incoming data in a background thread, updating \texttt{latest\_temp} and \texttt{latest\_current} attributes that the main control loop reads. \\
+\hline
+\end{longtable}
 
 \subsection{Control and Recommendation Logic}
 
@@ -771,7 +785,7 @@ The test software in the repository (\texttt{run.bat}, \texttt{run\_integrated.b
 
 \subsubsection*{Current and Power Measurement Results}
 
-The current measurement subsystem successfully achieved stable and accurate RMS current readings across the full operating range of the Xiaomi hair dryer (0--7 A). Figure~\ref{fig:current_results} would show representative time-series data demonstrating the two-stage filtering approach: raw RMS values computed every 20 ms exhibit residual noise from motor transients and electrical interference, while the 250-sample moving average produces stable 5-second outputs suitable for safety monitoring.
+The current measurement subsystem successfully achieved stable and accurate RMS current readings across the full operating range of the Xiaomi hair dryer (0--7 A). Representative time-series data demonstrate the two-stage filtering approach: raw RMS values computed every 20 ms exhibit residual noise from motor transients and electrical interference, while the 250-sample moving average produces stable 5-second outputs suitable for safety monitoring.
 
 \textbf{Observed Current Levels by Operating Mode:}
 \begin{itemize}
