@@ -87,12 +87,15 @@ Success is measured by the system's ability to consistently detect and respond t
 \subsection{System Overview of the Proposed Solution}
 % High-level principle: sense (current + temperature) -> decide -> actuate + recommend schedule via price API
 % Insert diagram: sensors -> ESP32 -> control logic -> actuators + data logging/UI + external API
-% \begin{figure}[H]
-%   \centering
-%      \includegraphics[width=1\linewidth]{figures/System schematic of the prototype.png}
-%    \caption{System schematic of the prototype.}
-%   \label{fig:system-flow}
-% \end{figure}
+\begin{figure}[H]
+  \centering
+ 
+
+    \includegraphics[width=1\linewidth]{figures/System schematic of the prototype.png}
+   
+   \caption{System schematic of the prototype.}
+  \label{fig:system-flow}
+\end{figure}
 
   
 
@@ -367,12 +370,12 @@ Physically, the sensor is positioned between the detachable nozzle and the main 
 
 Basic validation of the temperature measurement was performed by comparing sensor output against ambient room temperature under no-load conditions and observing expected temperature rises during normal device operation. These checks confirmed correct sensor orientation, electrical connection, and thermal coupling prior to integration with the control logic.
 
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.6\linewidth]{figures/LM35_TemperatureChain_Schematic.pdf}
-%   \caption{Close-up schematic of the LM35 temperature measurement chain and ESP32 ADC connection.}
-%   \label{fig:lm35_chain}
-% \end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\linewidth]{figures/LM35_TemperatureChain_Schematic.pdf}
+  \caption{Close-up schematic of the LM35 temperature measurement chain and ESP32 ADC connection.}
+  \label{fig:lm35_chain}
+\end{figure}
 
 \subsubsection*{Actuation Hardware (Blue LED / Relay Cutoff)}
 
@@ -382,12 +385,12 @@ The relay control input is driven by a dedicated GPIO pin configured as a digita
 
 Visual system feedback is provided by a DFRobot digital blue LED module connected to a separate GPIO pin. The module integrates the LED and its current-limiting circuitry on-board, allowing it to be driven directly from a 3.3\,V digital output without the need for an external series resistor. This simplifies wiring and reduces component count while maintaining safe operating conditions. The LED operates entirely within the low-voltage domain and provides a clear indication of system state (e.g., relay enabled or disabled).
 
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.6\linewidth]{figures/Actuation_LED_Relay_Schematic.pdf}
-%   \caption{Close-up schematic of the relay cutoff and blue LED module actuation circuitry controlled by the ESP32.}
-%   \label{fig:actuation_chain}
-% \end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\linewidth]{figures/Actuation_LED_Relay_Schematic.pdf}
+  \caption{Close-up schematic of the relay cutoff and blue LED module actuation circuitry controlled by the ESP32.}
+  \label{fig:actuation_chain}
+\end{figure}
 
 
 \subsection{Hardware Build Photos}
@@ -396,11 +399,11 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
   \includegraphics[width=0.6\linewidth]{figures/IMG_6610.jpg}
   \caption{Hardware: AC side and DC side.}
 \end{figure}
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.85\linewidth]{figures/FullSetup.jpeg}
-%   \caption{Hardware: full setup.}
-% \end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/FullSetup.jpeg}
+  \caption{Hardware: full setup.}
+\end{figure}
 
 % ==================================================
 \newpage
@@ -444,7 +447,7 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
     \node[sensor, text width=2.8cm] (current) at (6.5,-11) {SCT013\\Current Sensor};
 
     % Actuator
-    \node[sensor, fill=red!10] (relay) at (2,-11.5) {Relay\\(Load Control)};
+    \node[sensor, fill=red!10] (relay) at (2,-11.5) {Relay\\Load Control};
 
     % Arrows - Data flow
     \draw[dashed_arrow] (openmeteo) -- node[left, font=\tiny, text=gray] {optional} (dashboard);
@@ -462,13 +465,13 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
     \draw[arrow] (arduino) -- node[left, font=\tiny] {H/L commands} (relay);
 
   \end{tikzpicture}
-  \caption{Software schematic showing dual operation modes: standalone terminal-based control (solid lines) with direct API access and default values, or optional dashboard interface (dashed lines). Simulation mode enables hardware-free software testing.}
+  \caption{Software schematic.}
   \label{fig:software_schematic}
 \end{figure}
 
 \subsection{Software Architecture}
 
-The software operates in two distinct modes with six primary modules:
+The software \cite{acesschematic} operates in two distinct modes with six primary modules:
 
 \begin{longtable}{|p{0.3\textwidth}|p{0.65\textwidth}|}
 \caption{System Components and Descriptions}
@@ -571,11 +574,11 @@ Recommendation Engine & The protocol calculator determines heat settings through
 
 \textbf{Demo Mode Acceleration:} Setting \texttt{DEMO\_MODE = 1} divides all protocol durations by 10 before sending to \texttt{SafetyStrategy}, allowing rapid testing (e.g., 4-minute protocols become 24 seconds). Critically, this only affects safety timeout durations, not the Arduino's sensor sampling or output rate, maintaining realistic sensor data flow during accelerated testing.
 
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.6\linewidth]{figures/logging.jpg}
-%   \caption{Example UI/logging screenshot.}
-% \end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\linewidth]{figures/logging.jpg}
+  \caption{Example UI/logging screenshot.}
+\end{figure}
 
 % ==================================================
 \newpage
@@ -654,7 +657,7 @@ The current transformer was tested by connecting it to the hairdryer and observi
 Temperature measurements were validated by comparing sensor output against ambient room temperature under no-load conditions. During hairdryer operation, the sensor was positioned near the air outlet to observe expected temperature rises. The linear relationship (10 mV/°C) was verified by checking voltage-to-temperature conversion in the ESP32 ADC range.
 
 \paragraph{Relay and LED}
-Actuation hardware was tested using simple serial commands (`H' for high, `L' for low) sent from the Python control script. The relay switching was audibly confirmed, and LED visual feedback verified proper GPIO control.
+Actuation hardware was tested using simple serial commands (`H' for high, `L' for low) sent from the Python control script. The relay switching was audibly confirmed, and LED visual feedback verified.
 
 \paragraph{Serial Communication}
 ESP32-to-Python communication was validated through handshake testing (PING/PONG protocol) and continuous data streaming. The 115200 baud rate provided reliable transmission of the sensor data format: \texttt{Temperature: XX.XX | Current: X.XXXXX}.
@@ -759,148 +762,285 @@ Maximum Runtime Protection & \textbf{Failure:} Software bug or sensor failure pr
 
 \subsubsection*{Current and Power Measurement Results}
 
-The current measurement subsystem successfully achieved stable and accurate RMS current readings across the full operating range of the Xiaomi hair dryer (0--7 A). Representative time-series data demonstrate the two-stage filtering approach: raw RMS values computed every 20 ms exhibit residual noise from motor transients and electrical interference, while the 250-sample moving average produces stable 5-second outputs suitable for safety monitoring.
+The current measurement subsystem successfully achieved stable and accurate RMS current readings across the full operating range of the Xiaomi hair dryer (0--7 A).
 
-\textbf{Observed Current Levels by Operating Mode:}
-\begin{itemize}
-  \item \textbf{Low Heat Mode:} 2.8--3.5 A (corresponding to approximately 650--800 W at 230 V)
-  \item \textbf{Medium Heat Mode:} 4.2--5.0 A (approximately 950--1,150 W)
-  \item \textbf{High Heat Mode:} 5.8--6.8 A (approximately 1,300--1,550 W)
-  \item \textbf{Cool Shot / Motor Only:} 1.2--1.8 A (approximately 280--400 W)
-\end{itemize}
-
-The measured values align closely with the manufacturer's rated power of 1,600 W, with the discrepancy attributed to voltage fluctuations and device efficiency. The RMS calculation formula incorporating time integration and power frequency synchronization ($I_{\text{RMS}} = \sqrt{f \times S_{\text{RMS}}}$) proved essential for accurate measurement, as initial implementations using simple quadratic averaging underestimated current by 15--25\%.
-
-Calibration iterations (Oct 17) corrected systematic bias from double voltage offset subtraction, bringing measurements within $\pm 0.2$ A of expected values. The 0.1 A noise floor threshold effectively suppressed sensor offset and ambient electrical noise while preserving sensitivity to actual load current.
+\begin{longtable}{|p{0.28\textwidth}|p{0.25\textwidth}|p{0.38\textwidth}|}
+\caption{Current and Power Measurement Results by Operating Mode}
+\label{tab:current_power_results} \\
+\hline
+\textbf{Operating Mode} & \textbf{Current Range (A)} & \textbf{Approximate Power (W at 230 V)} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Operating Mode} & \textbf{Current Range (A)} & \textbf{Approximate Power (W at 230 V)} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Low Heat Mode & 2.8--3.5 & 650--800 \\
+\hline
+Medium Heat Mode & 4.2--5.0 & 950--1,150 \\
+\hline
+High Heat Mode & 5.8--6.8 & 1,300--1,550 \\
+\hline
+Cool Shot / Motor Only & 1.2--1.8 & 280--400 \\
+\hline
+\multicolumn{3}{|p{0.92\textwidth}|}{\textbf{Key Findings:} The measured values align closely with the manufacturer's rated power of 1,600 W, with the discrepancy attributed to voltage fluctuations and device efficiency.} \\
+\hline
+\end{longtable}
 
 \subsubsection*{Temperature Profiles}
 
-Temperature measurements using the LM35 sensor demonstrated clear differentiation between operating modes and provided sufficient response time for safety monitoring. Sensor placement between the detachable nozzle and the main air outlet proved critical for obtaining representative measurements.
+Measurements using the LM35 sensor demonstrated differentiation between operating modes and provided sufficient response time for safety monitoring. Sensor placement between the detachable nozzle and the main air outlet proved critical for obtaining representative measurements.
 
-\textbf{Observed Temperature Ranges:}
-\begin{itemize}
-  \item \textbf{Low Heat Mode:} 45--60°C outlet temperature during steady-state operation
-  \item \textbf{Medium Heat Mode:} 65--82°C outlet temperature
-  \item \textbf{High Heat Mode:} 85--105°C outlet temperature
-  \item \textbf{Cool Shot:} 28--35°C (approximately ambient + motor heat)
-\end{itemize}
-
-Initial external sensor placement (outside the nozzle) yielded temperatures 30--40°C lower due to airflow cooling and mixing with ambient air, rendering measurements unsuitable for safety threshold enforcement. Relocating the sensor to the outlet-nozzle interface (Oct 15) dramatically improved measurement fidelity while maintaining acceptable sensor durability.
-
-Temperature response time exhibited approximately 2--3 second time constants when switching between heat modes, which is acceptable given the 5-second sensor output interval. The system's duration-based threshold enforcement naturally accommodates transient temperature spikes during mode changes, as violations are only triggered after sustained threshold exceedance for the full protocol duration (e.g., 4.2 minutes in demo mode, corresponding to 42 minutes in full operation).
+\begin{longtable}{|p{0.28\textwidth}|p{0.26\textwidth}|p{0.37\textwidth}|}
+\caption{Temperature Measurement Results by Operating Mode}
+\label{tab:temperature_profiles} \\
+\hline
+\textbf{Operating Mode} & \textbf{Temperature Range (°C)} & \textbf{Operating Condition} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Operating Mode} & \textbf{Temperature Range (°C)} & \textbf{Operating Condition} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Low Heat Mode & 45--60 & Outlet temperature during steady-state operation \\
+\hline
+Medium Heat Mode & 65--82 & Outlet temperature \\
+\hline
+High Heat Mode & 85--105 & Outlet temperature \\
+\hline
+Cool Shot & 28--35 & Approximately ambient + motor heat \\
+\hline
+\multicolumn{3}{|p{0.92\textwidth}|}{\textbf{Response Time Characteristics:} Temperature response time exhibited approximately 2--3 second time constants when switching between heat modes, which is acceptable given the 5-second sensor output interval. The system's duration-based threshold enforcement naturally accommodates transient temperature spikes during mode changes, as violations are only triggered after sustained threshold exceedance for the full protocol duration (e.g., 4.2 minutes in demo mode, corresponding to 42 minutes in full operation).} \\
+\hline
+\end{longtable}
 
 \subsubsection*{Control Outcomes}
 
 The supervisory safety strategy successfully enforced threshold-based protection across multiple test scenarios while maintaining usability through hysteresis and duration-based triggering.
 
-\textbf{Threshold Calibration Results (Dec 15):}
-\begin{itemize}
-  \item \textbf{Temperature Threshold:} 38°C at sensor location (equivalent to approximately 80--90°C outlet temperature accounting for measurement position)
-  \item \textbf{Current Threshold:} 5.0 A (corresponding to sustained high-heat mode operation)
-  \item \textbf{Maximum Runtime:} 30 minutes (1,800,000 ms) as absolute failsafe
-\end{itemize}
+\begin{longtable}{|p{0.35\textwidth}|p{0.58\textwidth}|}
+\caption{Threshold Calibration Results and Control Parameters (Dec 15)}
+\label{tab:control_thresholds} \\
+\hline
+\textbf{Parameter} & \textbf{Value and Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Parameter} & \textbf{Value and Description} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Temperature Threshold & 38°C at sensor location (equivalent to approximately 80--90°C outlet temperature accounting for measurement position) \\
+\hline
+Current Threshold & 5.0 A (corresponding to sustained high-heat mode operation) \\
+\hline
+Maximum Runtime & 30 minutes (1,800,000 ms) as absolute failsafe \\
+\hline
+\end{longtable}
 
-During integration testing, the system correctly identified and responded to the following scenarios:
-\begin{enumerate}
-  \item \textbf{Normal Operation:} Hair dryer running within safe limits for 3--6 minute sessions generated no false alarms. Temperature and current remained below thresholds, and relay remained engaged.
+\vspace{0.5em}
+\noindent During integration testing, the system correctly identified and responded to the following scenarios:
 
-  \item \textbf{Temperature Violation:} Sustained high-heat operation exceeding the protocol duration (e.g., 4.2 minutes total drying time) triggered shutdown with the message: "You used too long the total hairdrying duration." Violation detection latency was 0--5 seconds depending on sensor output timing.
-
-  \item \textbf{Current Violation:} Continuous high-heat mode (current $>$ 5.0 A) exceeding the bulk phase duration (e.g., 2.4 minutes) triggered shutdown with: "You used too long the high heat mode in your hairdryer."
-
-  \item \textbf{Hysteresis Verification:} Brief temperature spikes or momentary high-current bursts (duration $<$ 5 seconds) did not trigger violations, as the timer reset mechanism correctly distinguished transient events from sustained threshold exceedance. This eliminated false alarms observed in earlier threshold-only implementations (pre-Dec 15).
-
-  \item \textbf{Graceful Recovery:} After safety shutdown, users could restart the system by confirming the restart prompt, which reset the safety strategy and re-engaged the relay. This workflow was validated in both hardware and simulation modes.
-\end{enumerate}
-
-No relay contact failures or communication errors were observed during testing. Serial communication at 115,200 baud remained stable across extended test sessions (up to 30 minutes continuous operation).
+\begin{longtable}{|p{0.25\textwidth}|p{0.68\textwidth}|}
+\caption{Integration Testing Scenarios and System Response}
+\label{tab:control_test_scenarios} \\
+\hline
+\textbf{Test Scenario} & \textbf{System Response and Observations} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Test Scenario} & \textbf{System Response and Observations} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Normal Operation & Hair dryer running within safe limits for 3--6 minute sessions generated no false alarms. Temperature and current remained below thresholds, and relay remained engaged. \\
+\hline
+Temperature Violation & Sustained high-heat operation exceeding the protocol duration (e.g., 4.2 minutes total drying time) triggered shutdown with the message: "You used too long the total hairdrying duration." Violation detection latency was 0--5 seconds depending on sensor output timing. \\
+\hline
+Current Violation & Continuous high-heat mode (current $>$ 5.0 A) exceeding the bulk phase duration (e.g., 2.4 minutes) triggered shutdown with: "You used too long the high heat mode in your hairdryer." \\
+\hline
+Hysteresis Verification & Brief temperature spikes or momentary high-current bursts (duration $<$ 5 seconds) did not trigger violations, as the timer reset mechanism correctly distinguished transient events from sustained threshold exceedance. This eliminated false alarms observed in earlier threshold-only implementations (pre-Dec 15). \\
+\hline
+Graceful Recovery & After safety shutdown, users could restart the system by confirming the restart prompt, which reset the safety strategy and re-engaged the relay. This workflow was validated in both hardware and simulation modes. \\
+\hline
+\multicolumn{2}{|p{0.94\textwidth}|}{\textbf{System Reliability:} No relay contact failures or communication errors were observed during testing. Serial communication at 115,200 baud remained stable across extended test sessions (up to 30 minutes continuous operation).} \\
+\hline
+\end{longtable}
 
 \subsubsection*{Energy/Cost Impact Estimation}
 
 The protocol calculator and dashboard interface successfully integrated real-time environmental data and electricity pricing to provide actionable energy efficiency guidance.
 
-\textbf{Scenario Analysis Example (Barcelona, December 2025):}
+\vspace{0.5em}
+\noindent\textbf{Scenario Analysis Example (Barcelona, December 2025):}
 
-Consider a user with medium-thickness hair, normal porosity, 80\% wetness after toweling, in a room at 18°C and 55\% humidity. The system computed:
+\noindent Consider a user with medium-thickness hair, normal porosity, 80\% wetness after toweling, in a room at 18°C and 55\% humidity. The system computed:
 
-\begin{itemize}
-  \item \textbf{Drying Power Index (DP):} $DP = (1 - 0.55) \times (1 + 0.02 \times (18 - 20)) = 0.43$
-  \item \textbf{Heat Index:} Starting at 1 (medium hair), reduced by 1 due to low DP ($< 0.6$), yielding heat index = 0 (Low heat recommended)
-  \item \textbf{Recommended Protocol:}
-  \begin{itemize}
-    \item Bulk Phase: 3.2 minutes at Low heat (50--60°C), 800 W
-    \item Finish Phase: 1.0 minute at Low heat, 800 W
-    \item Total Time: 4.2 minutes
-    \item Energy Consumption: $(800 \times 3.2 + 800 \times 1.0) / 60 = 56$ Wh = 0.056 kWh
-  \end{itemize}
-  \item \textbf{Cost (at €0.28/kWh REE real-time price):} €0.0157 per session
-\end{itemize}
+\begin{longtable}{|p{0.35\textwidth}|p{0.58\textwidth}|}
+\caption{Energy/Cost Analysis for Recommended Protocol (Barcelona, December 2025)}
+\label{tab:energy_scenario_analysis} \\
+\hline
+\textbf{Parameter} & \textbf{Value and Calculation} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Parameter} & \textbf{Value and Calculation} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+User Profile & Medium-thickness hair, normal porosity, 80\% wetness after toweling \\
+\hline
+Environmental Conditions & Room at 18°C and 55\% humidity \\
+\hline
+Drying Power Index (DP) & $DP = (1 - 0.55) \times (1 + 0.02 \times (18 - 20)) = 0.43$ \\
+\hline
+Heat Index Calculation & Starting at 1 (medium hair), reduced by 1 due to low DP ($< 0.6$), yielding heat index = 0 (Low heat recommended) \\
+\hline
+Bulk Phase & 3.2 minutes at Low heat (50--60°C), 800 W \\
+\hline
+Finish Phase & 1.0 minute at Low heat, 800 W \\
+\hline
+Total Time & 4.2 minutes \\
+\hline
+Energy Consumption & $(800 \times 3.2 + 800 \times 1.0) / 60 = 56$ Wh = 0.056 kWh \\
+\hline
+Cost (at €0.28/kWh REE real-time price) & €0.0157 per session \\
+\hline
+\end{longtable}
 
-\textbf{Comparison with Unguided Usage:}
+\vspace{0.5em}
+\noindent\textbf{Comparison with Unguided Usage:}
 
-A typical user might default to high heat for faster drying:
-\begin{itemize}
-  \item High Heat: 1,500 W for approximately 3.5 minutes = 87.5 Wh = 0.0875 kWh
-  \item Cost: €0.0245 per session
-  \item \textbf{Savings:} 36\% energy reduction, €0.0088 cost savings per session
-\end{itemize}
+\begin{longtable}{|p{0.28\textwidth}|p{0.32\textwidth}|p{0.32\textwidth}|}
+\caption{Energy and Cost Comparison: Recommended vs. Unguided Usage}
+\label{tab:energy_comparison} \\
+\hline
+\textbf{Metric} & \textbf{Unguided Usage (High Heat)} & \textbf{System Recommendation (Low Heat)} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Metric} & \textbf{Unguided Usage (High Heat)} & \textbf{System Recommendation (Low Heat)} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Power Level & 1,500 W & 800 W \\
+\hline
+Duration & 3.5 minutes & 4.2 minutes \\
+\hline
+Energy Consumption & 87.5 Wh = 0.0875 kWh & 56 Wh = 0.056 kWh \\
+\hline
+Cost per Session & €0.0245 & €0.0157 \\
+\hline
+\textbf{Savings per Session} & --- & \textbf{36\% energy reduction, €0.0088 cost savings} \\
+\hline
+\textbf{Annual Savings} & --- & \textbf{€2.29 per year (5 uses/week, 260 sessions/year)} \\
+\hline
+\multicolumn{3}{|p{0.94\textwidth}|}{\textbf{Additional Benefit:} Corresponding reduction in thermal hair damage due to lower heat exposure.} \\
+\hline
+\end{longtable}
 
-Extrapolated to 5 uses per week over one year: 260 sessions $\times$ €0.0088 = \textbf{€2.29 annual savings} per user, with corresponding reduction in thermal hair damage due to lower heat exposure.
+\vspace{0.5em}
+\noindent\textbf{Hybrid Drying Recommendations:}
 
-\textbf{Hybrid Drying Recommendations:}
+\noindent For favorable environmental conditions (e.g., Barcelona summer: 26°C, 45\% humidity, DP = 1.2), the system recommended:
 
-For favorable environmental conditions (e.g., Barcelona summer: 26°C, 45\% humidity, DP = 1.2), the system recommended:
-\begin{itemize}
-  \item Air-dry for 20--25 minutes (zero energy cost)
-  \item Blow-dry for 2.5 minutes at Low heat (reduced from 4.2 minutes)
-  \item Total Energy: 33 Wh (41\% reduction compared to immediate blow-drying)
-  \item Cost: €0.0092 (42\% savings)
-\end{itemize}
+\begin{longtable}{|p{0.35\textwidth}|p{0.58\textwidth}|}
+\caption{Hybrid Drying Strategy (Favorable Conditions)}
+\label{tab:hybrid_drying} \\
+\hline
+\textbf{Component} & \textbf{Specification and Result} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Component} & \textbf{Specification and Result} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Environmental Conditions & Barcelona summer: 26°C, 45\% humidity, DP = 1.2 \\
+\hline
+Air-Dry Phase & 20--25 minutes (zero energy cost) \\
+\hline
+Blow-Dry Phase & 2.5 minutes at Low heat (reduced from 4.2 minutes) \\
+\hline
+Total Energy & 33 Wh (41\% reduction compared to immediate blow-drying) \\
+\hline
+Cost & €0.0092 (42\% savings) \\
+\hline
+\multicolumn{2}{|p{0.94\textwidth}|}{\textbf{Key Insight:} These estimates demonstrate the system's ability to quantify energy/cost trade-offs and provide data-driven recommendations tailored to user context.} \\
+\hline
+\end{longtable}
 
-These estimates demonstrate the system's ability to quantify energy/cost trade-offs and provide data-driven recommendations tailored to user context.
+\subsection{Limitations and Improvements}
 
-\subsubsection*{Limitations and Improvements}
+While the prototype demonstrated core functionality, several limitations were identified:
 
-While the prototype successfully demonstrated core functionality, several limitations were identified during development and testing:
+\vspace{1\baselineskip}
 
+\begin{minipage}[t]{0.5\textwidth}
 \textbf{Hardware Limitations:}
-\begin{itemize}
-  \item \textbf{Temperature Sensor Response Time:} The LM35 exhibits 2--3 second thermal time constants, which is acceptable for monitoring steady-state operation but may miss very rapid transients. Future iterations could employ faster thermocouples (K-type or T-type) with sub-second response.
+\begin{itemize}[leftmargin=*,label=-]
+\item \textbf{Temperature Sensor Response Time:} The LM35 exhibits 2--3 second thermal time constants, which is acceptable for monitoring steady-state operation but may miss very rapid transients.
 
-  \item \textbf{Sensor Placement Constraints:} The temperature sensor is positioned between the nozzle and outlet, which measures outlet air temperature rather than hair surface temperature. A non-contact IR thermometer aimed at the hair stream could provide more direct thermal exposure measurement.
+\item \textbf{Sensor Placement Constraints:} The temperature sensor is positioned between the nozzle and outlet, which measures outlet air temperature rather than hair surface temperature.
 
-  \item \textbf{Enclosure and Packaging:} The prototype uses breadboard-style connections and exposed wiring, limiting durability and portability. A custom PCB with integrated sensor interfaces and a 3D-printed enclosure would improve robustness for extended real-world use.
+\item \textbf{Enclosure and Packaging:} The prototype uses breadboard-style connections and exposed wiring, limiting durability and portability.
 
-  \item \textbf{Relay Mechanical Wear:} The electromechanical relay is rated for 100,000 cycles, which may limit long-term reliability in high-usage scenarios. Solid-state relays (SSRs) or TRIAC-based switching could eliminate mechanical wear at the cost of increased heat dissipation.
+\item \textbf{Relay Mechanical Wear:} The electromechanical relay is rated for 100,000 cycles, which may limit long-term reliability in high-usage scenarios.
 
-  \item \textbf{Power Supply Isolation:} The current prototype powers the ESP32 and sensors from USB, requiring separate mains and low-voltage supplies. An integrated isolated AC-DC converter would simplify deployment.
+\item \textbf{Power Supply Isolation:} The current prototype powers the ESP32 and sensors from USB, requiring separate mains and low-voltage supplies.
 \end{itemize}
 
-\textbf{Software and Calibration Limitations:}
-\begin{itemize}
-  \item \textbf{Hair Type Calibration:} Safety thresholds and drying time estimates rely on literature-based assumptions about hair properties rather than empirical data from controlled experiments with different hair types. Validation with diverse user groups would improve recommendation accuracy.
+\end{minipage}\hfill
+\begin{minipage}[t]{0.4\textwidth}
+\textbf{Software Limitations:}
+\begin{itemize}[leftmargin=*,label=-]
+\item \textbf{Hair Type Calibration:} Safety thresholds and drying time estimates rely on literature-based assumptions about hair properties rather than empirical data from controlled experiments with different hair types.
 
-  \item \textbf{API Dependency:} The system's value proposition depends on external APIs (Open-Meteo, REE pricing) that may experience downtime or rate limiting. While fallback values are implemented, cached historical data or local weather station integration could improve resilience.
+\item \textbf{API Dependency:} The system's value proposition depends on external APIs (Open-Meteo, REE pricing) that may experience downtime or rate limiting.
 
-  \item \textbf{User Interface Complexity:} The terminal-based interface in standalone mode requires text input for location and hair parameters, which may be cumbersome for non-technical users. The Streamlit dashboard improves this, but a dedicated mobile app or physical control panel would enhance usability.
+\item \textbf{User Interface Complexity:} The terminal-based interface in standalone mode requires text input for location and hair parameters, which may be cumbersome for non-technical users.
 
-  \item \textbf{Real-Time Feedback Loop:} The current system operates in open-loop mode with respect to actual hair drying progress. Integrating a humidity sensor near the hair stream could enable closed-loop control that adapts to actual drying rates rather than relying solely on pre-calculated protocols.
+\item \textbf{Real-Time Feedback Loop:} The current system operates in open-loop mode with respect to actual hair drying progress.
 \end{itemize}
+\end{minipage}
 
-\textbf{Potential Improvements:}
-\begin{enumerate}
-  \item \textbf{Machine Learning Integration:} Collect usage data across multiple sessions to train a model that predicts optimal protocols based on past user behavior and outcomes, personalizing recommendations beyond static hair type classifications.
+\vspace{1\baselineskip}
 
-  \item \textbf{Multi-Zone Temperature Sensing:} Add multiple temperature sensors at different positions (outlet, nozzle tip, ambient) to create a temperature profile and improve safety monitoring accuracy.
+\noindent\textbf{Potential Improvements:}
+\begin{enumerate}[leftmargin=*,label={\arabic*.}]
+  \item \textbf{Advanced Sensing:} Implement faster thermocouples, non-contact IR thermometers, multi-zone temperature sensing, and humidity sensors for precise closed-loop control.
 
-  \item \textbf{Enhanced Visualization:} Develop real-time graphs showing temperature and current trends during operation, allowing users to understand how their usage patterns affect safety margins and energy consumption.
+  \item \textbf{Production Design:} Develop custom PCB, 3D-printed enclosure, solid-state switching, and integrated power supply for robust deployment.
 
-  \item \textbf{Cloud Data Logging:} Implement optional cloud storage of anonymized usage data to enable population-level analysis of hair care practices, electricity consumption patterns, and safety event frequencies.
+  \item \textbf{Enhanced Intelligence:} Conduct empirical hair type validation, integrate machine learning for personalized protocols, and add real-time visualization of safety/energy metrics.
 
-  \item \textbf{Smart Home Integration:} Expose the system via MQTT or Home Assistant API to enable automation such as "only allow high-heat mode during off-peak electricity hours" or "notify user if usage patterns deviate from energy-saving recommendations."
+  \item \textbf{System Integration:} Build resilient local weather integration, dedicated mobile app/control panel, cloud data logging, and smart home API exposure.
 \end{enumerate}
 
-Despite these limitations, the prototype successfully validates the core concept of intelligent, user-aware hair dryer control and demonstrates measurable improvements in safety monitoring and energy efficiency awareness.
+\newpage
 
 \subsection{Discussion}
 
@@ -941,7 +1081,7 @@ The project revealed that sensor placement matters more than specifications—th
 
 External API integration for weather and electricity pricing enhanced recommendations but required careful fault tolerance—five-second timeouts, fallback logic, and default values ensured the system remained functional despite intermittent connectivity. This reinforces that IoT devices must handle connectivity failures by design, not as an afterthought.
 
-The non-invasive retrofit approach—clamp-on current sensors and relay switching without modifying the dryer's internals—shows legacy appliances can gain smart capabilities. However, the system's complexity (ESP32, external ADC, multiple sensors, Python software, APIs, web dashboard) questions commercial viability for low-cost devices. Future work should explore integrated sensor modules or simplified algorithms to reduce component count and complexity.
+The non-invasive retrofit approach—clamp-on current sensors and relay switching without modifying the dryer's internals—shows legacy appliances can gain smart capabilities. However, the system's complexity (ESP32, external ADC, multiple sensors, Python software, APIs, web dashboard) questions commercial viability for low-cost devices. Future work should explore integrated modules for more high-fidelity prototyping.
 
 
 
