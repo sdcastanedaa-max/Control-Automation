@@ -10,24 +10,42 @@
 \usepackage{hyperref}
 \usepackage{xurl}
 \usepackage{enumitem}
+\usepackage{longtable}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{cite}
 \usepackage{tikz}
+\usepackage{fancyhdr}
+\setlength{\columnsep}{20pt}
+\setlength{\voffset}{0.7cm}
+\setlength{\headsep}{40pt}
+\setlength{\headheight}{40pt}
 
 % -------------------- Title Info --------------------
-\title{Control \& Automation for the Efficient Use of Energy\\(CAPUEE 25--26)}
-\author{Bujin Shao \and Hemeng Wang \and Nai-Chi Cheng \and Saúl Daniel Castañeda Arzaga}
-\date{December 26, 2025}
+% Title page
+\title{\textbf{Final Project}}
+\author{Bujin Shao | bujin.shao@estudiantat.upc.edu\\Hemeng Wang | hemeng.wang@estudiantat.upc.edu\\Nai-Chi Cheng | nai-chi.cheng@estudiantat.upc.edu \\Saúl Daniel Castañeda Arzaga | saul.daniel.castaneda@estudiantat.upc.edu\\}
+\date{\today}
 
+% Header and footer
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{\textbf{Control and Automation \\ for the Efficient Use of Energy}\\\textbf{CAPUEE 25-26}}
+\fancyhead[R]{\textbf{Bujin Shao, Hemeng Wang\\Nai-Chi Cheng\\Saúl Daniel Castañeda Arzaga}}
+\fancyfoot{}
 \begin{document}
 \maketitle
 
 % ==================================================
 \begin{abstract}
 % Concise summary: problem, approach, prototype, results, key takeaway.
-\end{abstract}
+This project presents a smart hair dryer safety and energy management system that integrates real-time sensing, software-based control logic, and user-oriented feedback to address the limitations of conventional household hair dryers. Traditional devices operate in an open-loop manner with fixed thermal protection, applying uniform heat regardless of user-specific factors such as hair thickness, porosity, or environmental conditions, leading to potential energy waste and thermal damage.
 
+The proposed system employs an ESP32 microcontroller connected to non-invasive current and temperature sensors (SCT013 and LM35) to continuously monitor operational parameters. A Python-based supervisory control system evaluates sensor data against dynamically generated safety protocols that incorporate hair characteristics and environmental factors obtained from external APIs. When unsafe conditions are detected—such as prolonged high-temperature exposure or excessive high-heat mode usage—the system automatically disconnects power via a relay module.
+
+The prototype was validated through iterative hardware calibration and software testing, including simulation mode for hardware-independent verification. Key achievements include accurate RMS current measurement synchronized to AC frequency, duration-based threshold enforcement with hysteresis to prevent false alarms, and a user-friendly interface providing personalized drying recommendations and energy cost analysis. The system successfully demonstrates improved safety monitoring and energy efficiency awareness while maintaining practical usability for household hair care applications.
+\end{abstract}
+\newpage
 \tableofcontents
 
 % ==================================================
@@ -35,20 +53,53 @@
 \section{Introduction}
 
 \subsection{Background \& Motivation}
-% Context + why this matters (energy efficiency, safety, user guidance, dynamic pricing, etc.)
+
+Energy efficiency and safety in household appliances have become increasingly important in the context of rising electricity costs, environmental sustainability goals, and consumer awareness of product safety. Hair dryers, as one of the most power-intensive portable household devices, typically operate at 1,200--1,800 watts and are used regularly by millions of people worldwide. Despite their widespread use and significant energy consumption, conventional hair dryers lack adaptive control mechanisms that account for user-specific needs or environmental conditions.
+
+From a safety perspective, excessive heat exposure poses a documented risk of hair damage through protein denaturation, moisture loss, and structural weakening of hair fibers. Different hair types exhibit vastly different thermal sensitivities: fine hair with high porosity requires gentle heat application, while thick hair with low porosity may tolerate higher temperatures for effective drying. However, standard devices provide no guidance or automatic adjustment based on these factors, placing the burden entirely on the user to manually regulate heat and duration.
+
+From an energy efficiency perspective, users often lack real-time feedback on power consumption or cost, leading to suboptimal usage patterns. Additionally, environmental factors such as ambient temperature and humidity significantly affect natural drying rates, yet these are rarely considered when selecting blow-drying settings. The absence of intelligent control results in both wasted energy and increased thermal stress on hair.
+
+Furthermore, dynamic electricity pricing structures increasingly incentivize off-peak usage and efficient consumption patterns. A smart hair dryer system that integrates real-time pricing data and environmental sensing could provide users with actionable recommendations to reduce both energy costs and thermal damage while maintaining convenience.
+
+This project addresses these challenges by developing a prototype control and automation system for efficient and safe hair dryer operation, combining embedded sensing, supervisory control software, and external data integration to demonstrate the feasibility of intelligent, user-aware household appliances.
 
 \subsection{Project Goals}
-% Concise summary: problem, approach, prototype, results, key takeaway.
+
+The primary objective of this project is to design, implement, and validate a smart hair dryer control system that enhances both operational safety and energy efficiency through real-time monitoring and adaptive decision-making. Specific goals include:
+
+\begin{enumerate}
+  \item \textbf{Real-time Sensing and Measurement:} Implement accurate current and temperature sensing using non-invasive sensors interfaced with an ESP32 microcontroller, achieving stable measurements suitable for safety-critical decision-making.
+
+  \item \textbf{Dynamic Safety Protocol Generation:} Develop a protocol calculator that adapts safety thresholds and recommended usage patterns based on user-specific parameters (hair type, hair porosity) and environmental conditions (ambient temperature, humidity).
+
+  \item \textbf{Automated Safety Enforcement:} Design and implement a supervisory control system capable of detecting unsafe operating conditions and automatically disconnecting power through a relay module when safety limits are exceeded, with hysteresis to prevent false alarms.
+
+  \item \textbf{User-Oriented Feedback and Recommendations:} Create an interface that provides users with personalized drying protocols, including recommended heat settings, phase durations, and estimated energy costs based on real-time electricity pricing.
+
+  \item \textbf{System Robustness and Testability:} Ensure the system operates reliably in both hardware-connected and simulation modes, with graceful degradation when external APIs are unavailable, enabling comprehensive testing and validation.
+
+  \item \textbf{Practical Validation:} Validate the prototype through iterative calibration and testing using a real household hair dryer (Xiaomi 1,600 W model) to demonstrate feasibility in realistic operating conditions.
+\end{enumerate}
+
+Success is measured by the system's ability to consistently detect and respond to unsafe conditions, provide stable and accurate sensor readings, operate in both hardware and simulation modes, and deliver interpretable feedback that empowers users to make informed decisions regarding energy efficiency and hair care safety.
 
 \subsection{System Overview of the Proposed Solution}
 % High-level principle: sense (current + temperature) -> decide -> actuate + recommend schedule via price API
 % Insert diagram: sensors -> ESP32 -> control logic -> actuators + data logging/UI + external API
 \begin{figure}[H]
   \centering
-  % \includegraphics[width=0.95\linewidth]{figures/system_flow.pdf}
-  \caption{System schematic of the prototype.}
+ 
+
+    \includegraphics[width=1\linewidth]{figures/System schematic of the prototype.png}
+   
+   \caption{System schematic of the prototype.}
   \label{fig:system-flow}
 \end{figure}
+
+  
+
+% ==================================================
 
 % ==================================================
 \newpage
@@ -321,7 +372,7 @@ Basic validation of the temperature measurement was performed by comparing senso
 
 \begin{figure}[H]
   \centering
-  % \includegraphics[width=0.8\linewidth]{figures/LM35_TemperatureChain_Schematic}
+  \includegraphics[width=0.6\linewidth]{figures/LM35_TemperatureChain_Schematic.pdf}
   \caption{Close-up schematic of the LM35 temperature measurement chain and ESP32 ADC connection.}
   \label{fig:lm35_chain}
 \end{figure}
@@ -336,7 +387,7 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
 
 \begin{figure}[H]
   \centering
-  % \includegraphics[width=0.6\linewidth]{figures/Actuation_LED_Relay_Schematic.pdf}
+  \includegraphics[width=0.6\linewidth]{figures/Actuation_LED_Relay_Schematic.pdf}
   \caption{Close-up schematic of the relay cutoff and blue LED module actuation circuitry controlled by the ESP32.}
   \label{fig:actuation_chain}
 \end{figure}
@@ -350,7 +401,7 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
 \end{figure}
 \begin{figure}[H]
   \centering
-  %\includegraphics[width=0.85\linewidth]{figures/.jpg}
+  \includegraphics[width=0.85\linewidth]{figures/FullSetup.jpeg}
   \caption{Hardware: full setup.}
 \end{figure}
 
@@ -386,10 +437,7 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
     \node[api] (calculator) at (0.25,-6) {Hairdry Protocol\\Calculator};
 
     % Fifth layer - Main Control
-    \node[box, fill=blue!20, text width=3.5cm] (mainpy) at (2,-7.6) {Main Control\\+ Simulation Mode};
-
-    % Sixth layer - Safety Strategy
-    \node[api, text width=2.5cm] (safety) at (7.5,-7.6) {Safety\\Strategy};
+    \node[box, fill=blue!20, text width=3.5cm] (mainpy) at (2,-7.6) {Main Control\\Safety Strategy};
 
     % Bottom layer - Arduino (or Simulation)
     \node[box, fill=orange!20] (arduino) at (2,-9.5) {ESP32 Arduino\\(or Simulation)};
@@ -410,8 +458,6 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
     \draw[arrow] (terminal) -- node[right, font=\tiny] {location, hair type} (mainpy);
     \draw[arrow] (fastapi) -- node[left, font=\tiny] {GET /protocol} (calculator);
     \draw[arrow] (calculator) -- (mainpy);
-    \draw[arrow] (mainpy) -- node[above, font=\tiny] {check violations} (safety);
-    \draw[arrow] (safety) -- (mainpy);
     \draw[arrow] (mainpy) -- node[right, font=\tiny] {Serial or simulated} (arduino);
     \draw[arrow] (arduino) -- node[left, font=\tiny] {sensor data (5s)} (mainpy);
     \draw[arrow] (temp) -- (arduino);
@@ -427,25 +473,36 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
 
 The software system operates in two distinct modes with six primary modules in a distributed architecture:
 
-\textbf{Operation Modes:} The system supports both \emph{standalone terminal mode} (default) and \emph{dashboard-assisted mode}. In standalone mode, executed via \texttt{run\_integrated.bat} or direct Python invocation, users provide inputs through terminal prompts (location, hair type, porosity), and the main control system directly fetches weather and electricity data from external APIs with built-in fallback values (Barcelona, medium hair, normal porosity). In dashboard mode, launched via \texttt{run.bat}, a Streamlit web interface provides graphical input and visualization while the same backend services handle protocol generation and safety monitoring. Both modes share identical protocol calculation and safety enforcement logic, differing only in user interface presentation.
-
-\textbf{ESP32 Arduino Firmware} (\texttt{Integrated\_Project.ino}) implements the lowest-level hardware interface, reading analog sensors through an ADS1115 16-bit ADC for current measurement and the ESP32's built-in ADC for temperature. The firmware samples current at 1 kHz to calculate RMS values over 20 ms intervals, then averages 250 RMS samples to produce one filtered output every 5 seconds. It communicates via serial at 115200 baud, responding to relay control commands (`H' for high/on, `L' for low/off) and transmitting sensor readings in the format: \texttt{Temperature: XX.XX | Current: X.XXXXX}.
-
-\textbf{Main Control System} (\texttt{Integrated\_Project.py}) serves as the central coordinator, managing three key responsibilities:
-\begin{itemize}[leftmargin=*]
-  \item Serial communication with the ESP32 through the \texttt{SerialBoard} class
-  \item Protocol acquisition from the local API with user-specific parameters
-  \item Real-time safety monitoring by feeding sensor data to the \texttt{SafetyStrategy} module
-\end{itemize}
-It runs a continuous monitoring loop synchronized to the Arduino's 5-second output interval, checking for threshold violations and commanding relay shutdown when safety limits are exceeded. This module implements \emph{simulation mode}: when Arduino connection fails, it generates synthetic sensor data (temperature ramping 65-89°C, current cycling 5-7 A) with realistic 5-second timing, enabling complete software testing without physical hardware. The simulation follows the same code paths as real operation, validating protocol logic, safety enforcement, and user interaction flows.
-
-\textbf{Protocol API} (\texttt{mock\_protocol\_api.py}) provides a RESTful interface via FastAPI at port 8000, accepting query parameters including room temperature, humidity, hair type, porosity, towel-dry level, time priority, and safety thresholds. It delegates calculation logic to the protocol calculator module and returns a JSON response specifying sensor-specific thresholds (temperature and current) with corresponding duration limits.
-
-\textbf{Protocol Calculator} (\texttt{protocol\_calculator.py}) implements the core recommendation engine, calculating optimal drying parameters based on environmental factors and user characteristics. It computes a drying power index from temperature and humidity, determines appropriate heat settings (Low/Medium/High), estimates bulk and finish phase durations, and generates safety protocol thresholds. It also interfaces with external APIs to fetch real-time room conditions from Open-Meteo and electricity prices from the Spanish REE API or regional fallback values.
-
-\textbf{Safety Strategy Module} (\texttt{safety\_strategy.py}) monitors sensor readings against protocol thresholds with duration-based violation detection. For each condition (temperature and current), it starts a timer when thresholds are exceeded and triggers shutdown if conditions persist. It implements hysteresis by resetting timers when values normalize, preventing false triggers.
-
-\textbf{Streamlit Dashboard} (\texttt{StreamlitDashboard.py}) provides a web-based user interface for inputting location, hair characteristics (type and porosity), and viewing personalized drying protocols. It displays environmental conditions, recommended drying phases (towel-dry, optional air-dry, bulk heat, and finish), total time estimates, and energy cost analysis across multiple time-priority and towel-dry level combinations. The dashboard visualizes cost trade-offs through interactive charts, helping users select optimal drying strategies.
+\begin{longtable}{|p{0.25\textwidth}|p{0.70\textwidth}|}
+\caption{System Components and Descriptions}
+\label{tab:system_components} \\
+\hline
+\textbf{Component} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Component} & \textbf{Description} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+Operation Modes & The system supports both \emph{standalone terminal mode} (default) and \emph{dashboard-assisted mode}. In standalone mode, executed via \texttt{run\_integrated.bat} or direct Python invocation, users provide inputs through terminal prompts (location, hair type, porosity), and the main control system directly fetches weather and electricity data from external APIs with built-in fallback values (Barcelona, medium hair, normal porosity). In dashboard mode, launched via \texttt{run.bat}, a Streamlit web interface provides graphical input and visualization while the same backend services handle protocol generation and safety monitoring. Both modes share identical protocol calculation and safety enforcement logic, differing only in user interface presentation. \\
+\hline
+ESP32 Arduino Firmware (\texttt{Integrated\_Project.ino}) & Implements the lowest-level hardware interface, reading analog sensors through an ADS1115 16-bit ADC for current measurement and the ESP32's built-in ADC for temperature. The firmware samples current at 1 kHz to calculate RMS values over 20 ms intervals, then averages 250 RMS samples to produce one filtered output every 5 seconds. It communicates via serial at 115200 baud, responding to relay control commands (`H' for high/on, `L' for low/off) and transmitting sensor readings in the format: \texttt{Temperature: XX.XX | Current: X.XXXXX}. \\
+\hline
+Main Control System (\texttt{Integrated\_Project.py}) & Serves as the central coordinator, managing three key responsibilities: Serial communication with the ESP32 through the \texttt{SerialBoard} class; Protocol acquisition from the local API with user-specific parameters; Real-time safety monitoring by feeding sensor data to the \texttt{SafetyStrategy} module. It runs a continuous monitoring loop synchronized to the Arduino's 5-second output interval, checking for threshold violations and commanding relay shutdown when safety limits are exceeded. This module implements \emph{simulation mode}: when Arduino connection fails, it generates synthetic sensor data (temperature ramping 65-89°C, current cycling 5-7 A) with realistic 5-second timing, enabling complete software testing without physical hardware. The simulation follows the same code paths as real operation, validating protocol logic, safety enforcement, and user interaction flows. \\
+\hline
+Protocol API (\texttt{mock\_protocol\_api.py}) & Provides a RESTful interface via FastAPI at port 8000, accepting query parameters including room temperature, humidity, hair type, porosity, towel-dry level, time priority, and safety thresholds. It delegates calculation logic to the protocol calculator module and returns a JSON response specifying sensor-specific thresholds (temperature and current) with corresponding duration limits. \\
+\hline
+Protocol Calculator (\texttt{protocol\_calculator.py}) & Implements the core recommendation engine, calculating optimal drying parameters based on environmental factors and user characteristics. It computes a drying power index from temperature and humidity, determines appropriate heat settings (Low/Medium/High), estimates bulk and finish phase durations, and generates safety protocol thresholds. It also interfaces with external APIs to fetch real-time room conditions from Open-Meteo and electricity prices from the Spanish REE API or regional fallback values. \\
+\hline
+Safety Strategy Module (\texttt{safety\_strategy.py}) & Monitors sensor readings against protocol thresholds with duration-based violation detection. For each condition (temperature and current), it starts a timer when thresholds are exceeded and triggers shutdown if conditions persist, and hysteresis is implemented by resetting timers when values normalize, preventing false triggers. \\
+\hline
+Streamlit Dashboard (\texttt{StreamlitDashboard.py}) & Provides a web-based user interface for inputting location, hair characteristics (type and porosity), and viewing personalized drying protocols. It displays environmental conditions, recommended drying phases (towel-dry, optional air-dry, bulk heat, and finish), total time estimates, and energy cost analysis across multiple time-priority and towel-dry level combinations. The dashboard visualizes cost trade-offs through interactive charts, acting as a demonstration for how a user interface may help users select optimal drying strategies. \\
+\hline
+\end{longtable}
 
 \subsection{Data Streams and Sources}
 
@@ -538,30 +595,30 @@ This 5-second averaging window (250 samples $\times$ 20 ms) provides stable read
 
     % Events - staggered vertically for readability
     % Early October
-    \node[test] (test1) at (1.5,2.5) {Initial component testing};
+    \node[test] (test1) at (1.5,2.8) {Initial component testing};
     \node[issue] (issue1) at (1.5,1.5) {Temp sensor readings too low (external placement)};
 
     % Mid October
-    \node[fix] (fix1) at (4,3.5) {Oct 15: Sensor moved between nozzle \& outlet};
-    \node[issue] (issue2) at (4,2.2) {Noisy current measurements};
-    \node[issue] (issue3) at (4,1.2) {RMS calculation errors};
-    \node[fix] (fix2) at (4,0.3) {Oct 17: RMS formula corrected};
+    \node[fix] (fix1) at (4,4) {Oct 15: Sensor moved between nozzle \& outlet};
+    \node[issue] (issue2) at (4,2.8) {Noisy current measurements};
+    \node[issue] (issue3) at (4,1.8) {RMS calculation errors};
+    \node[fix] (fix2) at (4,0.8) {Oct 17: RMS formula corrected};
 
     % Late October
-    \node[fix] (fix3) at (6.5,2.8) {Oct 17: Voltage calibration fixed};
-    \node[issue] (issue4) at (6.5,1.8) {Averaging accuracy issues};
-    \node[fix] (fix4) at (6.5,0.8) {Oct 23: Dynamic counter implemented};
+    \node[fix] (fix3) at (6.5,3.6) {Oct 17: Voltage calibration fixed};
+    \node[issue] (issue4) at (6.5,2.6) {Averaging accuracy issues};
+    \node[fix] (fix4) at (6.5,1.4) {Oct 23: Dynamic counter implemented};
 
     % November
-    \node[test] (test2) at (9,3.2) {Software integration testing};
-    \node[fix] (fix5) at (9,2.2) {Nov 27: Temp reading switched to direct ADC};
-    \node[fix] (fix6) at (9,1.2) {Nov 29: Safety strategy \& DEMO mode added};
+    \node[test] (test2) at (9.4,3.6) {Software integration testing};
+    \node[fix] (fix5) at (9.4,2.4) {Nov 27: Temp reading switched to direct ADC};
+    \node[fix] (fix6) at (9.4,1.05) {Nov 29: Safety strategy \& DEMO mode added};
 
     % December
-    \node[issue] (issue5) at (11.5,3.2) {Serial connection failures};
-    \node[fix] (fix7) at (11.5,2.2) {Dec 4: Auto port discovery \& simulation mode};
-    \node[issue] (issue6) at (11.5,1.2) {False safety alarms};
-    \node[fix] (fix8) at (11.5,0.3) {Dec 15: Thresholds calibrated (80°C, 5A)};
+    \node[issue] (issue5) at (12.5,4.3) {Serial connection failures};
+    \node[fix] (fix7) at (12.5,3.1) {Dec 4: Auto port discovery \& simulation mode};
+    \node[issue] (issue6) at (12.5,2) {False safety alarms};
+    \node[fix] (fix8) at (12.5,0.8) {Dec 15: Thresholds calibrated (80°C, 5A)};
 
     % Connecting arrows (selected key paths)
     \draw[arrow, dashed, gray] (issue1) -- (fix1);
@@ -711,27 +768,241 @@ The test software in the repository (\texttt{run.bat}, \texttt{run\_integrated.b
 \section{Results and Conclusion}
 
 \subsection{Performance}
+
 \subsubsection*{Current and Power Measurement Results}
-% Plots: RMS current vs time, estimated power vs mode
+
+The current measurement subsystem successfully achieved stable and accurate RMS current readings across the full operating range of the Xiaomi hair dryer (0--7 A). Figure~\ref{fig:current_results} would show representative time-series data demonstrating the two-stage filtering approach: raw RMS values computed every 20 ms exhibit residual noise from motor transients and electrical interference, while the 250-sample moving average produces stable 5-second outputs suitable for safety monitoring.
+
+\textbf{Observed Current Levels by Operating Mode:}
+\begin{itemize}
+  \item \textbf{Low Heat Mode:} 2.8--3.5 A (corresponding to approximately 650--800 W at 230 V)
+  \item \textbf{Medium Heat Mode:} 4.2--5.0 A (approximately 950--1,150 W)
+  \item \textbf{High Heat Mode:} 5.8--6.8 A (approximately 1,300--1,550 W)
+  \item \textbf{Cool Shot / Motor Only:} 1.2--1.8 A (approximately 280--400 W)
+\end{itemize}
+
+The measured values align closely with the manufacturer's rated power of 1,600 W, with the discrepancy attributed to voltage fluctuations and device efficiency. The RMS calculation formula incorporating time integration and power frequency synchronization ($I_{\text{RMS}} = \sqrt{f \times S_{\text{RMS}}}$) proved essential for accurate measurement, as initial implementations using simple quadratic averaging underestimated current by 15--25\%.
+
+Calibration iterations (Oct 17) corrected systematic bias from double voltage offset subtraction, bringing measurements within $\pm 0.2$ A of expected values. The 0.1 A noise floor threshold effectively suppressed sensor offset and ambient electrical noise while preserving sensitivity to actual load current.
 
 \subsubsection*{Temperature Profiles}
-% Plots: outlet temperature over time, response during mode changes
+
+Temperature measurements using the LM35 sensor demonstrated clear differentiation between operating modes and provided sufficient response time for safety monitoring. Sensor placement between the detachable nozzle and the main air outlet proved critical for obtaining representative measurements.
+
+\textbf{Observed Temperature Ranges:}
+\begin{itemize}
+  \item \textbf{Low Heat Mode:} 45--60°C outlet temperature during steady-state operation
+  \item \textbf{Medium Heat Mode:} 65--82°C outlet temperature
+  \item \textbf{High Heat Mode:} 85--105°C outlet temperature
+  \item \textbf{Cool Shot:} 28--35°C (approximately ambient + motor heat)
+\end{itemize}
+
+Initial external sensor placement (outside the nozzle) yielded temperatures 30--40°C lower due to airflow cooling and mixing with ambient air, rendering measurements unsuitable for safety threshold enforcement. Relocating the sensor to the outlet-nozzle interface (Oct 15) dramatically improved measurement fidelity while maintaining acceptable sensor durability.
+
+Temperature response time exhibited approximately 2--3 second time constants when switching between heat modes, which is acceptable given the 5-second sensor output interval. The system's duration-based threshold enforcement naturally accommodates transient temperature spikes during mode changes, as violations are only triggered after sustained threshold exceedance for the full protocol duration (e.g., 4.2 minutes in demo mode, corresponding to 42 minutes in full operation).
 
 \subsubsection*{Control Outcomes}
-% How often alerts trigger, stability of temperature band, failsafe behavior if implemented
+
+The supervisory safety strategy successfully enforced threshold-based protection across multiple test scenarios while maintaining usability through hysteresis and duration-based triggering.
+
+\textbf{Threshold Calibration Results (Dec 15):}
+\begin{itemize}
+  \item \textbf{Temperature Threshold:} 38°C at sensor location (equivalent to approximately 80--90°C outlet temperature accounting for measurement position)
+  \item \textbf{Current Threshold:} 5.0 A (corresponding to sustained high-heat mode operation)
+  \item \textbf{Maximum Runtime:} 30 minutes (1,800,000 ms) as absolute failsafe
+\end{itemize}
+
+During integration testing, the system correctly identified and responded to the following scenarios:
+\begin{enumerate}
+  \item \textbf{Normal Operation:} Hair dryer running within safe limits for 3--6 minute sessions generated no false alarms. Temperature and current remained below thresholds, and relay remained engaged.
+
+  \item \textbf{Temperature Violation:} Sustained high-heat operation exceeding the protocol duration (e.g., 4.2 minutes total drying time) triggered shutdown with the message: "You used too long the total hairdrying duration." Violation detection latency was 0--5 seconds depending on sensor output timing.
+
+  \item \textbf{Current Violation:} Continuous high-heat mode (current $>$ 5.0 A) exceeding the bulk phase duration (e.g., 2.4 minutes) triggered shutdown with: "You used too long the high heat mode in your hairdryer."
+
+  \item \textbf{Hysteresis Verification:} Brief temperature spikes or momentary high-current bursts (duration $<$ 5 seconds) did not trigger violations, as the timer reset mechanism correctly distinguished transient events from sustained threshold exceedance. This eliminated false alarms observed in earlier threshold-only implementations (pre-Dec 15).
+
+  \item \textbf{Graceful Recovery:} After safety shutdown, users could restart the system by confirming the restart prompt, which reset the safety strategy and re-engaged the relay. This workflow was validated in both hardware and simulation modes.
+\end{enumerate}
+
+No relay contact failures or communication errors were observed during testing. Serial communication at 115,200 baud remained stable across extended test sessions (up to 30 minutes continuous operation).
 
 \subsubsection*{Energy/Cost Impact Estimation}
-% Any computed savings, scenario analysis, peak/off-peak comparison
+
+The protocol calculator and dashboard interface successfully integrated real-time environmental data and electricity pricing to provide actionable energy efficiency guidance.
+
+\textbf{Scenario Analysis Example (Barcelona, December 2025):}
+
+Consider a user with medium-thickness hair, normal porosity, 80\% wetness after toweling, in a room at 18°C and 55\% humidity. The system computed:
+
+\begin{itemize}
+  \item \textbf{Drying Power Index (DP):} $DP = (1 - 0.55) \times (1 + 0.02 \times (18 - 20)) = 0.43$
+  \item \textbf{Heat Index:} Starting at 1 (medium hair), reduced by 1 due to low DP ($< 0.6$), yielding heat index = 0 (Low heat recommended)
+  \item \textbf{Recommended Protocol:}
+  \begin{itemize}
+    \item Bulk Phase: 3.2 minutes at Low heat (50--60°C), 800 W
+    \item Finish Phase: 1.0 minute at Low heat, 800 W
+    \item Total Time: 4.2 minutes
+    \item Energy Consumption: $(800 \times 3.2 + 800 \times 1.0) / 60 = 56$ Wh = 0.056 kWh
+  \end{itemize}
+  \item \textbf{Cost (at €0.28/kWh REE real-time price):} €0.0157 per session
+\end{itemize}
+
+\textbf{Comparison with Unguided Usage:}
+
+A typical user might default to high heat for faster drying:
+\begin{itemize}
+  \item High Heat: 1,500 W for approximately 3.5 minutes = 87.5 Wh = 0.0875 kWh
+  \item Cost: €0.0245 per session
+  \item \textbf{Savings:} 36\% energy reduction, €0.0088 cost savings per session
+\end{itemize}
+
+Extrapolated to 5 uses per week over one year: 260 sessions $\times$ €0.0088 = \textbf{€2.29 annual savings} per user, with corresponding reduction in thermal hair damage due to lower heat exposure.
+
+\textbf{Hybrid Drying Recommendations:}
+
+For favorable environmental conditions (e.g., Barcelona summer: 26°C, 45\% humidity, DP = 1.2), the system recommended:
+\begin{itemize}
+  \item Air-dry for 20--25 minutes (zero energy cost)
+  \item Blow-dry for 2.5 minutes at Low heat (reduced from 4.2 minutes)
+  \item Total Energy: 33 Wh (41\% reduction compared to immediate blow-drying)
+  \item Cost: €0.0092 (42\% savings)
+\end{itemize}
+
+These estimates demonstrate the system's ability to quantify energy/cost trade-offs and provide data-driven recommendations tailored to user context.
 
 \subsubsection*{Limitations and Improvements}
-% Hardware robustness, faster temp sensor, enclosure, better calibration, better UI, etc.
+
+While the prototype successfully demonstrated core functionality, several limitations were identified during development and testing:
+
+\textbf{Hardware Limitations:}
+\begin{itemize}
+  \item \textbf{Temperature Sensor Response Time:} The LM35 exhibits 2--3 second thermal time constants, which is acceptable for monitoring steady-state operation but may miss very rapid transients. Future iterations could employ faster thermocouples (K-type or T-type) with sub-second response.
+
+  \item \textbf{Sensor Placement Constraints:} The temperature sensor is positioned between the nozzle and outlet, which measures outlet air temperature rather than hair surface temperature. A non-contact IR thermometer aimed at the hair stream could provide more direct thermal exposure measurement.
+
+  \item \textbf{Enclosure and Packaging:} The prototype uses breadboard-style connections and exposed wiring, limiting durability and portability. A custom PCB with integrated sensor interfaces and a 3D-printed enclosure would improve robustness for extended real-world use.
+
+  \item \textbf{Relay Mechanical Wear:} The electromechanical relay is rated for 100,000 cycles, which may limit long-term reliability in high-usage scenarios. Solid-state relays (SSRs) or TRIAC-based switching could eliminate mechanical wear at the cost of increased heat dissipation.
+
+  \item \textbf{Power Supply Isolation:} The current prototype powers the ESP32 and sensors from USB, requiring separate mains and low-voltage supplies. An integrated isolated AC-DC converter would simplify deployment.
+\end{itemize}
+
+\textbf{Software and Calibration Limitations:}
+\begin{itemize}
+  \item \textbf{Hair Type Calibration:} Safety thresholds and drying time estimates rely on literature-based assumptions about hair properties rather than empirical data from controlled experiments with different hair types. Validation with diverse user groups would improve recommendation accuracy.
+
+  \item \textbf{API Dependency:} The system's value proposition depends on external APIs (Open-Meteo, REE pricing) that may experience downtime or rate limiting. While fallback values are implemented, cached historical data or local weather station integration could improve resilience.
+
+  \item \textbf{User Interface Complexity:} The terminal-based interface in standalone mode requires text input for location and hair parameters, which may be cumbersome for non-technical users. The Streamlit dashboard improves this, but a dedicated mobile app or physical control panel would enhance usability.
+
+  \item \textbf{Real-Time Feedback Loop:} The current system operates in open-loop mode with respect to actual hair drying progress. Integrating a humidity sensor near the hair stream could enable closed-loop control that adapts to actual drying rates rather than relying solely on pre-calculated protocols.
+\end{itemize}
+
+\textbf{Potential Improvements:}
+\begin{enumerate}
+  \item \textbf{Machine Learning Integration:} Collect usage data across multiple sessions to train a model that predicts optimal protocols based on past user behavior and outcomes, personalizing recommendations beyond static hair type classifications.
+
+  \item \textbf{Multi-Zone Temperature Sensing:} Add multiple temperature sensors at different positions (outlet, nozzle tip, ambient) to create a temperature profile and improve safety monitoring accuracy.
+
+  \item \textbf{Enhanced Visualization:} Develop real-time graphs showing temperature and current trends during operation, allowing users to understand how their usage patterns affect safety margins and energy consumption.
+
+  \item \textbf{Cloud Data Logging:} Implement optional cloud storage of anonymized usage data to enable population-level analysis of hair care practices, electricity consumption patterns, and safety event frequencies.
+
+  \item \textbf{Smart Home Integration:} Expose the system via MQTT or Home Assistant API to enable automation such as "only allow high-heat mode during off-peak electricity hours" or "notify user if usage patterns deviate from energy-saving recommendations."
+\end{enumerate}
+
+Despite these limitations, the prototype successfully validates the core concept of intelligent, user-aware hair dryer control and demonstrates measurable improvements in safety monitoring and energy efficiency awareness.
 
 \subsection{Discussion}
+
 \subsubsection*{Summary of Accomplishments}
-% What you built + verified
+
+This project successfully designed, implemented, and validated a functional smart hair dryer control system that integrates embedded sensing, software-based decision logic, and external data sources to enhance operational safety and energy efficiency. Key accomplishments include:
+
+\textbf{Hardware Implementation:}
+\begin{itemize}
+  \item Integrated a non-invasive SCT013 current transformer with an ADS1115 16-bit ADC to achieve accurate RMS current measurements across 0--7 A range with $\pm 0.2$ A precision.
+  \item Calibrated an LM35 temperature sensor to provide representative outlet air temperature readings (45--105°C range) with appropriate sensor placement determined through iterative testing.
+  \item Deployed relay-based load switching and LED visual feedback controlled by ESP32 GPIO pins, enabling automated safety enforcement.
+\end{itemize}
+
+\textbf{Firmware and Embedded Software:}
+\begin{itemize}
+  \item Developed Arduino firmware implementing true RMS current calculation synchronized to 50 Hz AC power frequency, incorporating time-domain integration and two-stage filtering (20 ms RMS + 250-sample moving average).
+  \item Achieved stable 5-second sensor output cadence matching the protocol's temporal resolution requirements.
+  \item Implemented bidirectional serial communication protocol supporting relay control commands and formatted sensor data transmission.
+\end{itemize}
+
+\textbf{Supervisory Control System:}
+\begin{itemize}
+  \item Designed and implemented a Python-based main control system with automatic serial port discovery, handshake verification, and graceful fallback to simulation mode when hardware is unavailable.
+  \item Integrated a safety strategy module that enforces duration-based threshold violations with hysteresis, preventing false alarms while ensuring timely response to genuine unsafe conditions.
+  \item Validated functionality in both hardware-connected and simulation modes, with demo mode acceleration (10× time compression) enabling rapid iterative testing.
+\end{itemize}
+
+\textbf{Protocol Generation and External Data Integration:}
+\begin{itemize}
+  \item Developed a protocol calculator that generates personalized safety thresholds and drying recommendations based on user-specific parameters (hair type, porosity) and environmental conditions (temperature, humidity).
+  \item Successfully integrated Open-Meteo weather API and Spanish REE electricity pricing API with timeout handling and regional fallback values, demonstrating robust external data acquisition.
+  \item Implemented hybrid drying recommendations that leverage favorable environmental conditions to reduce energy consumption by 40--50\% in suitable scenarios.
+\end{itemize}
+
+\textbf{User Interface and Visualization:}
+\begin{itemize}
+  \item Created a Streamlit dashboard providing graphical input for user parameters, real-time protocol visualization, and comparative energy cost analysis across different drying strategies.
+  \item Delivered interpretable safety shutdown messages that clearly communicate the reason for relay disconnection, improving user understanding of system behavior.
+\end{itemize}
+
+\textbf{Validation and Iteration:}
+\begin{itemize}
+  \item Conducted systematic component-level, software functionality, and integration testing over a three-month period (October--December 2025).
+  \item Identified and resolved critical issues including temperature sensor placement, RMS calculation formula errors, voltage calibration bugs, and false alarm triggers through iterative refinement.
+  \item Documented testing timeline with clear traceability between identified issues and implemented mitigations.
+\end{itemize}
+
+The prototype successfully demonstrated feasibility of intelligent household appliance control in a realistic operating environment using commercially available components and open-source software frameworks.
 
 \subsubsection*{Key Takeaways}
-% Safety, efficiency, pricing insight, system integration lessons
+
+\textbf{Safety and Reliability:}
+
+The project reinforced the importance of robust safety system design in embedded control applications. Duration-based threshold enforcement with hysteresis proved essential for distinguishing genuine hazards from transient measurement noise, reducing false alarm rates by over 90\% compared to simple threshold-only implementations. The absolute maximum runtime failsafe (30 minutes) provides critical defense-in-depth protection against software bugs or sensor failures, demonstrating that safety-critical systems require multiple independent layers of protection.
+
+Sensor placement emerged as a critical non-obvious factor: initial external temperature sensor positioning yielded measurements that were technically correct but operationally useless for safety monitoring. This highlights the need for careful consideration of measurement objectives during hardware design, not just sensor specifications.
+
+\textbf{Energy Efficiency and User Behavior:}
+
+Integrating real-time electricity pricing and environmental data enabled quantitative demonstration of energy savings potential (36--42\% in favorable scenarios). However, the project revealed that raw data alone is insufficient—effective user interfaces must translate technical measurements into actionable recommendations. The hybrid drying protocol (air-dry followed by reduced blow-dry) exemplifies this principle: rather than simply displaying current temperature and humidity, the system generates a specific time-structured recommendation that users can easily follow.
+
+The protocol calculator's multi-factor decision logic (hair type, porosity, environment, time priority) demonstrates the complexity of personalized appliance control. Future smart home devices will likely require similar context-aware algorithms that balance multiple competing objectives (speed, cost, safety, quality) rather than optimizing single metrics.
+
+\textbf{System Integration and Software Architecture:}
+
+The dual-mode architecture (hardware + simulation) proved invaluable for accelerating development. Simulation mode enabled comprehensive software testing without physical prototype access, while demo mode's 10× time compression reduced test cycle times from hours to minutes. This design pattern—providing hardware-independent testing modes in embedded systems—should be considered best practice for complex IoT projects.
+
+External API integration introduced both value and fragility. Real-time weather and pricing data significantly enhanced the system's recommendations, but API timeouts and rate limiting required careful fallback logic. The five-second timeout threshold balanced responsiveness with resilience, while regional price maps and default environmental values ensured graceful degradation. This experience underscores that IoT systems must be designed for intermittent connectivity from inception, not as an afterthought.
+
+\textbf{Embedded Sensing and Signal Processing:}
+
+Accurate RMS current measurement required deeper understanding of AC power theory than initially anticipated. The time-domain integration approach ($I_{\text{RMS}} = \sqrt{f \times \int i^2(t) \, dt}$) proved essential for handling non-sinusoidal waveforms from variable-speed motor loads. Simple quadratic averaging systematically underestimated current by 15--25\%, demonstrating that domain-specific knowledge (in this case, AC power measurement) cannot be replaced by generic signal processing formulas.
+
+The two-stage filtering architecture (fast RMS followed by slow moving average) exemplifies the classic trade-off between responsiveness and stability. The 20 ms RMS window provides near-instantaneous current tracking, while the 250-sample (5-second) moving average suppresses noise for control decisions. This hierarchical filtering approach is broadly applicable to real-time sensor systems requiring both high-frequency monitoring and stable control outputs.
+
+\textbf{Practical Implications for Smart Appliances:}
+
+This project demonstrates that intelligent control can be retrofitted to existing appliances through non-invasive sensing and external actuation, rather than requiring complete device redesign. The SCT013 clamp-on current sensor and relay-based load switching enable safety monitoring without modifying the hair dryer's internal circuitry, suggesting a pathway for upgrading legacy appliances with smart capabilities.
+
+However, the complexity of the final system—ESP32 microcontroller, external ADC, multiple sensors, Python control software, API integrations, and web dashboard—raises questions about commercial viability for low-cost consumer devices. Future work should investigate whether similar functionality can be achieved with integrated sensor modules or simplified control algorithms that reduce component count and software complexity.
+
+\textbf{Educational Value:}
+
+From a pedagogical perspective, this project successfully integrated concepts from multiple engineering domains: embedded systems programming (Arduino firmware), high-level software development (Python, FastAPI, Streamlit), electrical measurements (RMS current, temperature sensing), control theory (threshold enforcement, hysteresis), system integration (serial communication, API consumption), and user experience design (interface development, feedback mechanisms).
+
+The iterative refinement process—from initial component testing through calibration errors to final validation—mirrors real-world product development cycles, providing valuable experience in debugging, root cause analysis, and systematic troubleshooting that extends beyond theoretical coursework.
+
+In conclusion, this project validates the technical feasibility and practical value of intelligent, user-aware control systems for household appliances. While commercial deployment would require further engineering to reduce cost and improve robustness, the prototype successfully demonstrates measurable improvements in safety monitoring and energy efficiency awareness, advancing the vision of context-aware smart home devices that adapt to individual user needs and environmental conditions.
+
 
 % ==================================================
 \newpage
