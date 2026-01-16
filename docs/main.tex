@@ -20,6 +20,7 @@
 \setlength{\voffset}{0.7cm}
 \setlength{\headsep}{40pt}
 \setlength{\headheight}{40pt}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 % -------------------- Title Info --------------------
 % Title page
@@ -84,21 +85,40 @@ The primary objective of this project is to design, implement, and validate a sm
 
 Success is measured by the system's ability to consistently detect and respond to unsafe conditions, provide stable and accurate sensor readings, operate in both hardware and simulation modes, and deliver interpretable feedback that empowers users to make informed decisions regarding energy efficiency and hair care safety.
 
-\subsection{System Overview of the Proposed Solution}
+\subsection{Overview of the Proposed Solution}
 % High-level principle: sense (current + temperature) -> decide -> actuate + recommend schedule via price API
-% Insert diagram: sensors -> ESP32 -> control logic -> actuators + data logging/UI + external API
 \begin{figure}[H]
   \centering
- 
-
     \includegraphics[width=1\linewidth]{figures/System schematic of the prototype.png}
    
    \caption{System schematic of the prototype.}
   \label{fig:system-flow}
 \end{figure}
 
-  
+The diagram illustrates a three-layer architecture. The \textcolor{red}{bottom layer (red)} handles high-voltage AC mains (230V) with the Xiaomi hair dryer load, SCT013 current transformer clamped on the live conductor for non-invasive sensing, and a digital relay (HF3FA) for automated power cutoff, all isolated from low-voltage electronics. The \textcolor{blue}{middle layer (blue)} comprises low-voltage (3.3V DC) electronics including the FireBeetle ESP32 microcontroller, ADS1115 16-bit ADC for current signal digitization (with bias and conditioning), LM35 temperature sensor near the air outlet, blue LED for status feedback, and USB/serial connection to the host computer running Python control logic. The \textcolor{green}{top layer (green)} features external APIs (FastAPI for dynamic hair-dry protocols incorporating hair type/porosity and environment; Open-Meteo for weather; REE for pricing), Python script for supervisory safety strategy (threshold enforcement with hysteresis), and Streamlit dashboard for user recommendations/energy visualization.
 
+\newpage
+
+\subsection{Overview of Control}
+
+An existing hair drying protocol \cite{lee_hair_damage} is used to determine a dynamic control strategy based on user-specific hair properties (e.g., hair thickness and porosity), environmental conditions (temperature and relative humidity retrieved via Open-Meteo), and user preferences (e.g., towel-dry level and time-priority).
+These inputs are processed in \texttt{protocol\_calculator.py} to generate (i) personalized drying recommendations (heat level and phase durations) and (ii) a machine-enforceable safety protocol consisting of temperature/current thresholds and associated maximum allowable durations.
+
+\paragraph{Protocol generation (recommended schedule and limits).}
+The protocol calculation computes a \emph{drying power index} (DP) from ambient temperature and humidity to represent how much the environment contributes to moisture removal; DP then adjusts the recommended blow-drying time and heat aggressiveness. Using DP together with hair thickness/porosity and time-priority, the algorithm selects a discrete heat setting (Low/Medium/High) and estimates a two-stage schedule: a main (bulk) drying phase and a styling/finish phase, optionally recommending hybrid air-drying plus blow-drying in favorable conditions to reduce energy use and thermal stress.
+Because excessive heat exposure and prolonged drying time are linked to structural hair shaft damage, the same computed phase durations are reused as time limits for safety enforcement. % \cite{lee_hair_damage}
+
+\paragraph{Measured indicators of dryer ``mode''.}
+In a typical consumer hair dryer, different user-selected modes (e.g., low vs.\ high heat) manifest as different electrical and thermal signatures.
+The system therefore uses measured RMS current as a proxy for sustained high-heat usage, and outlet air temperature as a proxy for thermal exposure at the device boundary that is relevant to the user. 
+
+\paragraph{Supervisory safety enforcement (runtime monitoring and actuation).}
+The method of control employs a supervisory safety strategy in \texttt{safety\_strategy.py} that monitors real-time temperature and RMS current at the same cadence as the incoming sensor stream (every few seconds in the prototype implementation).
+For each constraint (temperature and current), the controller starts a violation timer when the measurement exceeds the protocol threshold; shutdown is triggered only if the violation persists continuously for the configured duration (e.g., total allowed drying time for temperature, and bulk-phase time for high-current/high-heat operation).
+Hysteresis is implemented by resetting the corresponding timer whenever the measurement returns to a safe range, which reduces false trips from brief spikes during normal handling.
+Finally, an absolute maximum runtime limit acts as a fail-safe (independent of protocol thresholds) to protect against abnormal usage or sensor/API failures; on shutdown, a relay is opened to disconnect power to the hair dryer.
+
+\paragraph{In a representative use case:} for medium-thickness hair, normal porosity, 80\% towel-dried in Barcelona (18\textdegree C, 55\% humidity, DP=0.43), the protocol recommends low-heat bulk phase (3.2 min at 800W, 64 Wh) followed by styling (1.0 min at 800W, 13.3 Wh), totaling 77 Wh (0.020 EUR at 0.26 EUR/kWh) versus 125 Wh (0.0325 EUR) for unguided high-heat usage (5 min at 1500W), achieving 36--48 Wh savings per session; sustained high-heat violation triggers ``You used too long the high heat mode in your hairdryer'', actuating relay cutoff.
 % ==================================================
 
 % ==================================================
@@ -473,7 +493,7 @@ Visual system feedback is provided by a DFRobot digital blue LED module connecte
 
 The software \cite{acesschematic} operates in two distinct modes with six primary modules:
 
-\begin{longtable}{|p{0.3\textwidth}|p{0.65\textwidth}|}
+\begin{longtable}{|L{0.3\textwidth}|p{0.65\textwidth}|}
 \caption{System Components and Descriptions}
 \label{tab:system_components} \\
 \hline
@@ -508,7 +528,7 @@ Streamlit Dashboard (\texttt{StreamlitDashboard.py}) & Provides a web-based user
 
 The system integrates multiple external and internal data sources with specific update frequencies and failure handling:
 
-\begin{longtable}{|p{0.3\textwidth}|p{0.65\textwidth}|}
+\begin{longtable}{|L{0.3\textwidth}|p{0.65\textwidth}|}
 \caption{Data Streams and Sources}
 \label{tab:data_streams} \\
 \hline
@@ -537,7 +557,7 @@ Serial Communication & Uses a simple ASCII format for bidirectional communicatio
 
 Three-tier safety thresholds with duration-based triggering and hysteresis are implemented:
 
-\begin{longtable}{|p{0.3\textwidth}|p{0.65\textwidth}|}
+\begin{longtable}{|L{0.3\textwidth}|p{0.65\textwidth}|}
 \caption{Control and Recommendation Logic Components}
 \label{tab:control_logic} \\
 \hline
@@ -690,7 +710,7 @@ The test software in the repository (\texttt{run.bat}, \texttt{run\_integrated.b
 
 \subsection{Calibration Iterations}
 
-\begin{longtable}{|p{0.2\textwidth}|p{0.75\textwidth}|}
+\begin{longtable}{|L{0.2\textwidth}|p{0.75\textwidth}|}
 \caption{Calibration Iterations and Refinements}
 \label{tab:calibration_iterations} \\
 \hline
@@ -723,7 +743,7 @@ Hardware Mode Synchronization (Dec 4) & \textbf{Issue:} Serial connection failur
 
 \subsection{Failure Modes \& Mitigations}
 
-\begin{longtable}{|p{0.2\textwidth}|p{0.75\textwidth}|}
+\begin{longtable}{|L{0.2\textwidth}|p{0.75\textwidth}|}
 \caption{Failure Modes and Mitigation Strategies}
 \label{tab:failure_modes} \\
 \hline
@@ -1046,7 +1066,7 @@ While the prototype demonstrated core functionality, several limitations were id
 
 \subsubsection*{Summary of Accomplishments}
 
-\begin{longtable}{|p{0.2\textwidth}|p{0.75\textwidth}|}
+\begin{longtable}{|L{0.2\textwidth}|p{0.75\textwidth}|}
 \caption{Project Accomplishments and Key Implementations}
 \label{tab:accomplishments} \\
 \hline
